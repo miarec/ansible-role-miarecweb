@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+
+# Absolute or relative path to the 'celery' command:
+CELERY_BIN="{{ miarecweb_root_dir }}/pyenv/bin/celery"
+
+# App instance to use
+CELERY_APP="miarecweb.celery_app"
+
+# Where to chdir at start.
+CELERYBEAT_CHDIR="{{ miarecweb_root_dir }}/pyenv"
+
+# Extra command-line arguments to the scheduler
+CELERYBEAT_OPTS="-S miarecweb.jobs.scheduler.JobScheduler --ini-file={{ miarecweb_root_dir }}/production.ini"
+
+CELERYBEAT_LOG_FILE="{{ miarecweb_celery_log_dir }}/beat.log"
+CELERYBEAT_PID_FILE="{{ miarecweb_celery_pid_dir }}/beat.pid"
+
+CELERYBEAT_LOG_LEVEL="{{ miarecweb_celery_log_level }}"
+
+# Create log/pid dirs, if they don't already exist
+CELERY_CREATE_DIRS=1
+
+CELERYBEAT_USER="{{ miarecweb_celery_user }}"
+CELERYBEAT_GROUP="{{ miarecweb_celery_group }}"

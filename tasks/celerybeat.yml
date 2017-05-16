@@ -1,0 +1,83 @@
+---
+
+- name: "Add celery group '{{ miarecweb_celery_group }}' | Celerybeat"
+  group:
+    name: "{{ miarecweb_celery_group }}"
+    state: present
+
+
+# -----------------------------
+# Create user for celery daemon
+# Important:
+#   User should have access to shell otherwise the init.d startup script fails (i.e. shell: /bin/false will not work)
+# -----------------------------
+- name: "Add celery user '{{ miarecweb_celery_user }}' | Celerybeat"
+  user:
+    name: "{{ miarecweb_celery_user }}"
+    group: "{{ miarecweb_celery_group }}"
+    comment: "Celery Task Manager"
+    shell: /bin/bash
+    system: yes
+
+
+- name: Create log directory for celerybeat
+  file:
+    path: '{{ miarecweb_celery_log_dir }}'
+    owner: '{{ miarecweb_celery_user }}'
+    group: '{{ miarecweb_celery_group }}'
+    state: directory
+
+
+- name: Configure celerybeat settings
+  template:
+    src: "etc_default_celerybeat.j2"
+    dest: "/etc/default/celerybeat"
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  notify: reload celerybeat
+
+
+- name: Install celerybeat init.d service
+  template:
+    src: "etc_init.d_celerybeat.j2"
+    dest: "/etc/rc.d/init.d/celerybeat"
+    owner: root
+    group: root
+    mode: 0755
+  vars:
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+
+
+# Work around https://github.com/ansible/ansible-modules-core/issues/915
+# otherwise we'd use service enabled=yes
+- name: Check if service celerybeat exists | systemd systems
+  shell: "if chkconfig --list | grep -q celerybeat;   then echo true;   else echo false; fi;"
+  register: celerybeat_service_exists
+  when: ansible_service_mgr|default() == "systemd"
+  changed_when: False
+
+- name: Enable celerybeat service | systemd systems
+  command: /sbin/chkconfig celerybeat on
+  when: ansible_service_mgr|default() == "systemd" and not celerybeat_service_exists.stdout|bool
+
+
+- name: Enable celerybeat service | non-systemd systems
+  service: 
+    name: celerybeat 
+    enabled: yes
+  when: ansible_service_mgr|default() != "systemd"
+
+
+- name: Start celerybeat service
+  service: 
+    name: celerybeat 
+    state: started
+
+
+- name: Configure logrotate | celerybeat
+  template:
+    src: "etc_logrotate.d_celery.j2"
+    dest: "/etc/logrotate.d/celery"

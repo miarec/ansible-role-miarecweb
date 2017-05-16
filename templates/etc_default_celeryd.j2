@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+
+# Names of nodes to start
+CELERYD_NODES="worker1"
+
+# Absolute or relative path to the 'celery' command:
+CELERY_BIN="{{ miarecweb_root_dir }}/pyenv/bin/celery"
+
+# App instance to use
+CELERY_APP="miarecweb.celery_app"
+
+# Where to chdir at start.
+CELERYD_CHDIR="{{ miarecweb_root_dir }}/pyenv"
+
+# Extra command-line arguments to the worker
+CELERYD_OPTS="--time-limit=300 -Ofair --concurrency=8 --ini-file={{ miarecweb_root_dir }}/production.ini"
+
+# %N will be replaced with the first part of the nodename.
+CELERYD_LOG_FILE="{{ miarecweb_celery_log_dir }}/%N.log"
+CELERYD_PID_FILE="{{ miarecweb_celery_pid_dir }}/%N.pid"
+
+CELERYD_LOG_LEVEL="{{ miarecweb_celery_log_level }}"
+
+# Create log/pid dirs, if they don't already exist
+CELERY_CREATE_DIRS=1
+
+CELERYD_USER="{{ miarecweb_celery_user }}"
+CELERYD_GROUP="{{ miarecweb_celery_group }}"

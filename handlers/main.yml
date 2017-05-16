@@ -1,0 +1,19 @@
+---
+- name: reload apache
+  service: 
+    name: "{{ apache_service }}"
+    state: reloaded
+  when: miarecweb_install_apache|bool
+
+- name: reload celeryd
+  service: 
+    name: celeryd
+    state: restarted
+  when: miarecweb_install_celeryd|bool
+
+- name: reload celerybeat
+  service: 
+    name: celerybeat
+    state: restarted
+  when: miarecweb_install_celerybeat|bool
+  

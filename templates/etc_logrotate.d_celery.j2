@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+
+{{ miarecweb_celery_log_dir }}/*.log
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    daily
+    dateext
+    rotate 7
+    size 10M
+}

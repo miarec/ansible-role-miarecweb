@@ -1,0 +1,107 @@
+---
+# Version of MiaRecWeb files to install
+miarecweb_version: 5.2.0.2119
+
+# The python version to install miarecweb. Caution! The python should be installed in advance
+python_version: 3.5.3
+# Location of the installed python files
+python_install_dir: /usr/local
+
+
+# Vesion of PostgreSQL and location of its binaries
+# This is required for locating of 'pg_config' binary.
+# See also an override of 'postgresq_bin_directory' in 'vars' folder
+postgresql_version: 9.3
+postgresql_bin_directory: /usr/bin
+
+
+# ----------------------------
+# Application settings:
+#   - database connection
+#   - redis connection
+# ----------------------------
+miarecweb_db_host: 127.0.0.1
+miarecweb_db_port: 5432
+miarecweb_db_name: miarecdb
+miarecweb_db_user: miarec
+miarecweb_db_password: password
+
+miarecweb_redis_host: 127.0.0.1
+miarecweb_redis_port: 6379
+
+
+# -----------------------------
+# Optional components
+# -----------------------------
+miarecweb_upgrade_db: yes
+miarecweb_install_apache: yes
+miarecweb_install_celeryd: yes
+miarecweb_install_celerybeat: yes
+
+
+# -----------------------------
+# MiaRec user group
+# Multiple processes (miarec, apache, celery) require "write" access to the same data (recording files)
+# - miarec recorder creates audio files
+# - celery purges audio files when user requests or due to retention policy
+# - apache creates audio files during replication process
+# We assume that the recording files are stored into directory owned by "miarec" group
+# Then we add users "miarec", "celery" and "httpd/www-data" to that group.
+# -----------------------------
+miarec_bin_group: root
+
+# -----------------------------
+# Installation folder structure:
+# -----------------------------
+#   root:
+#      releases:
+#          - 1.0.0.100
+#          - 2.0.1.200
+#          - 3.1.2.5
+#      shared:
+#          - data1
+#          - data2
+#      current: -> releases/3.1.2.5
+#
+# The 'releases' folder holds all the available releases. During a deploy, a new folder should be created in the releases folder.
+# The 'current' symlink points to one of the releases (usually, the latest one)
+# The 'shared' folder holds any resource that is shared between releases.
+#
+# Base installation directory for MiaRecWeb app
+miarecweb_install_dir: /opt/miarecweb
+
+
+# Location for log files
+# This could be the 'shared' folder, but recommended relocation is /var/log
+# because usually /opt and /var are located on different disk partitions.
+miarecweb_log_dir: /var/log/miarecweb
+
+
+# -----------------------------
+# Celery settings
+# -----------------------------
+miarecweb_celery_user: root
+miarecweb_celery_group: root
+miarecweb_celery_pid_dir: /var/run/celery
+miarecweb_celery_log_level: INFO
+miarecweb_celery_log_dir: '{{ miarecweb_log_dir }}/celery'
+
+
+# Download files location
+miarecweb_download_base_url: "https://www.miarec.com/files/download"
+miarecweb_tarball_file: "miarecweb-{{ miarecweb_version }}.tar.gz"
+
+# Directory where to download miarecweb files
+miarecweb_download_dir: /tmp
+
+# whether or not to delete the downloaded source code. By setting it
+# to false and using a custom var for `miarecweb_download_dir` a kind of
+# local caching can be achieved.
+miarecweb_cleanup_downloads: yes
+
+
+# If true, the miarecweb files for the version will be downloaded and
+# installed again even if it's found on the system.
+# miarecweb_force_install: no  
+
+

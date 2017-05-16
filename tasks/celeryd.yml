@@ -1,0 +1,107 @@
+---
+
+- name: "Add celery group '{{ miarecweb_celery_group }}' | Celerybeat"
+  group:
+    name: "{{ miarecweb_celery_group }}"
+    state: present
+  when: miarecweb_celery_group != 'root'
+
+
+# -----------------------------
+# Create user for celery daemon
+# Important:
+#   User should have access to shell otherwise the init.d startup script fails (i.e. shell: /bin/false will not work)
+# -----------------------------
+- name: "Add celery user '{{ miarecweb_celery_user }}' | Celerybeat"
+  user:
+    name: "{{ miarecweb_celery_user }}"
+    group: "{{ miarecweb_celery_group }}"
+    comment: "Celery Task Manager"
+    shell: /bin/bash
+    system: yes
+  when: miarecweb_celery_user != 'root'
+
+# Celery needs write permissions to the directory in order to allow purge of files.
+# We assume that such directory is owned by "miarec" group
+- name: Grant celery process an access to recordings directory
+  user:
+    name: "{{ miarecweb_celery_user }}"
+    groups: "{{ miarec_bin_group }}"
+    append: True
+  when: miarecweb_celery_user != 'root'
+
+
+- name: Create log directory for celery workers
+  file:
+    path: '{{ miarecweb_celery_log_dir }}'
+    owner: '{{ miarecweb_celery_user }}'
+    group: '{{ miarecweb_celery_group }}'
+    state: directory
+
+
+- name: Create log directory for celery jobs
+  file:
+    path: '{{ miarecweb_log_dir }}/jobs'
+    owner: '{{ miarecweb_celery_user }}'
+    group: '{{ miarecweb_celery_group }}'
+    state: directory
+
+
+- name: Configure celery settings
+  template:
+    src: "etc_default_celeryd.j2"
+    dest: "/etc/default/celeryd"
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  notify: reload celeryd
+
+
+- name: Install celery init.d service
+  template:
+    src: "etc_init.d_celeryd.j2"
+    dest: "/etc/rc.d/init.d/celeryd"
+    owner: root
+    group: root
+    mode: 0755
+  vars:
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+
+
+# Work around https://github.com/ansible/ansible-modules-core/issues/915
+# otherwise we'd use service enabled=yes
+- name: Check if service celeryd exists | systemd systems
+  shell: "if chkconfig --list | grep -q celeryd;   then echo true;   else echo false; fi;"
+  register: celeryd_service_exists
+  when: ansible_service_mgr|default() == "systemd"
+  changed_when: False
+
+
+# Use chkconfig to enable service on SystemD systems
+# The celeryd is an init.d service. Ansible 'service' module is not able to enable it on systems, 
+# where SystemD is a default service manager
+- name: Enable celeryd service | systemd systems
+  command: /sbin/chkconfig celeryd on
+  when: ansible_service_mgr|default() == "systemd" and not celeryd_service_exists.stdout|bool
+
+
+# On other systems (non-systemd) we can use Ansible "service" module
+- name: Enable celeryd service | non-systemd systems
+  service: 
+    name: celeryd 
+    enabled: yes
+  when: ansible_service_mgr|default() != "systemd"
+
+
+- name: Start celeryd service
+  service: 
+    name: celeryd 
+    state: started
+
+
+- name: Configure logrotate | celery
+  template:
+    src: "etc_logrotate.d_celery.j2"
+    dest: "/etc/logrotate.d/celery"

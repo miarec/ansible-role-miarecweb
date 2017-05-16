@@ -1,0 +1,62 @@
+
+---
+# ---------------------------------------------
+# Figure out what version of Apache is installed.
+# ---------------------------------------------
+- name: Get installed version of Apache.
+  shell: "{{ apache_daemon_path }}{{ apache_daemon }} -v"
+  changed_when: false
+  check_mode: no
+  register: _apache_version
+
+## This will create full version, like 2.4.6
+- set_fact:
+    apache_version: "{{ _apache_version.stdout.split()[2].split('/')[1] }}"
+ 
+
+## Translate full apache_version (2.4.5) to the MAJOR.MINOR value, like "2.4"
+- set_fact:
+    apache_version_base: "{{ '.'.join(apache_version.split('.')[:2]) }}"
+
+
+# --------------------------------------------------
+# releases/x.x.x.x/cache folder
+# --------------------------------------------------
+- name: Create cache directory for templates
+  file:
+    path: '{{ deploy_helper.new_release_path }}/cache'
+    owner: '{{ apache_user }}'
+    group: '{{ apache_group }}'
+    state: directory
+
+
+# Apache needs write permissions to the directory used for incoming replication
+# We assume that such directory is owned by "miarec" group
+- name: Grant apache process an access to recordings directory
+  user:
+    name: "{{ apache_user }}"
+    groups: "{{ miarec_bin_group }}"
+    append: True
+  when: miarec_bin_group != 'root'
+
+
+# --------------------------------------------------
+# releases/x.x.x.x/miarec.wsgi file
+# --------------------------------------------------
+- name: Copy miarec.wsgi file
+  copy:
+    src: "{{ deploy_helper.new_release_path }}/app/miarec.wsgi.sample"
+    dest: "{{ deploy_helper.new_release_path }}/miarec.wsgi"
+    remote_src: True
+
+# --------------------------------------------------
+# Apache conf.d/miarec.conf
+# --------------------------------------------------
+- name: Install miarec.conf into apache conf.d directory
+  template:
+    src: "apache-{{ apache_version_base }}-miarec.conf.j2"
+    dest: "{{ apache_conf_path }}/miarec.conf"
+  vars:
+    wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  notify: reload apache

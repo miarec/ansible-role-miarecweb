@@ -1,0 +1,33 @@
+---
+# ---------------------------------------------
+# Install other dependencies
+# ---------------------------------------------
+- name: install dependencies | Debian
+  package:
+    pkg: "{{ item }}"
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+  with_items:
+    - gcc
+    - make
+    - openssl
+    - libssl-dev
+    - libffi-dev
+  when: ansible_os_family == "Debian"
+
+- name: install dependencies | RedHat
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - gcc
+    - make
+    - openssl
+    - openssl-devel
+    - libffi-devel
+    - libxml2-devel
+    - libxslt-devel
+    - postgresql-devel
+  when: ansible_os_family == "RedHat"
+

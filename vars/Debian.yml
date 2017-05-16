@@ -1,0 +1,10 @@
+---
+apache_service: apache2
+apache_daemon: apache2 
+apache_daemon_path: /usr/sbin/
+apache_user: www-data
+apache_group: www-data
+# apache_server_root: /etc/apache2
+apache_conf_path: /etc/apache2
+
+postgresql_bin_directory: /usr/bin

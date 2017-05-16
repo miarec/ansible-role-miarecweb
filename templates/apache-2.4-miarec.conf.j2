@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+LoadModule wsgi_module modules/mod_wsgi.so
+
+WSGISocketPrefix run/wsgi
+
+# Use only 1 Python sub-interpreter.  Multiple sub-interpreters
+# play badly with C extensions.  See http://stackoverflow.com/a/10558360/209039
+WSGIApplicationGroup %{GLOBAL}
+WSGIPassAuthorization On
+
+WSGIDaemonProcess miarec user=apache group=apache python-path={{ wsgi_python_path }}
+WSGIProcessGroup miarec
+
+Alias /favicon.ico {{ miarecweb_root_dir }}/app/miarecweb/static/favicon.ico
+Alias /static {{ miarecweb_root_dir }}/app/miarecweb/static
+
+WSGIScriptAlias / {{ miarecweb_root_dir }}/miarec.wsgi process-group=miarec
+
+<Directory {{ miarecweb_root_dir }}/app/miarecweb/static>
+  AllowOverride None
+  Require all granted
+</Directory>
+
+<Directory {{ miarecweb_root_dir }}>
+  <Files miarec.wsgi>
+    Require all granted
+  </Files>
+</Directory>

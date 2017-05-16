@@ -1,0 +1,125 @@
+---
+- name: Create release directory
+  file:
+    path: '{{ deploy_helper.new_release_path }}'
+    state: directory
+
+# --------------------------------------------------
+# Download and extract miarecweb files into .../releases/{version}/app folder
+# --------------------------------------------------
+
+- name: Verify app directory presense
+  stat:
+    path: "{{ deploy_helper.new_release_path }}/app"
+  register: miarecweb_app_dir_exists
+
+
+- name: Add an unfinished file, to allow cleanup on successful finalize
+  file:
+    path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
+    state: touch
+  when: miarecweb_app_dir_exists.stat.exists == False
+
+
+- name: Download miarecweb tarbal
+  get_url:
+    url: "{{ miarecweb_download_base_url }}/{{ miarecweb_tarball_file }}"
+    dest: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
+  when: miarecweb_app_dir_exists.stat.exists == False
+
+
+- name: Untar the source package
+  unarchive:
+    src: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
+    dest: "{{ miarecweb_download_dir }}/"
+    creates: "{{ miarecweb_download_dir }}/miarecweb-{{ miarecweb_version }}"
+    copy: no
+  when: miarecweb_app_dir_exists.stat.exists == False
+
+
+- name: Move app directory to releases folder
+  command: mv "{{ miarecweb_download_dir }}/miarecweb-{{ miarecweb_version }}" "{{ deploy_helper.new_release_path }}/app"
+  args:
+    creates: "{{ deploy_helper.new_release_path }}/app"
+  when: miarecweb_app_dir_exists.stat.exists == False
+
+
+
+# --------------------------------------------------
+# Python virtual environment
+# --------------------------------------------------
+
+- name: Verify pyenv directory presense
+  stat:
+    path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb.egg-link"
+  register: miarecweb_pyenv_dir_exists
+
+
+- name: Add an unfinished file, to allow cleanup on successful finalize | pyenv
+  file:
+    path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
+    state: touch
+  when: miarecweb_pyenv_dir_exists.stat.exists == False
+
+- name: Create python virtual environment
+  pip:
+    chdir: "{{ deploy_helper.new_release_path }}/app"
+    name: "."
+    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
+    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
+    extra_args: -e 
+  environment:
+    # We need to add 'pg_config' to PATH. Otherwise psycopg2 build fails
+    PATH: "{{ postgresql_bin_directory }}:{{ ansible_env.PATH }}"
+  when: miarecweb_pyenv_dir_exists.stat.exists == False
+
+
+# --------------------------------------------------
+# Configuration file production.ini
+# --------------------------------------------------
+- name: Copy production.ini file
+  copy:
+    src: "{{ deploy_helper.new_release_path }}/app/production.ini.sample"
+    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    force: False
+    remote_src: True
+
+
+- name: Configure production.ini file
+  lineinfile:
+    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: '^DATABASE_HOST = '
+      line: 'DATABASE_HOST = {{ miarecweb_db_host }}'
+    - regexp: '^DATABASE_PORT = '
+      line: 'DATABASE_PORT = {{ miarecweb_db_port }}'
+    - regexp: '^DATABASE_NAME = '
+      line: 'DATABASE_NAME = {{ miarecweb_db_name }}'
+    - regexp: '^DATABASE_USER = '
+      line: 'DATABASE_USER = {{ miarecweb_db_user }}'
+    - regexp: '^DATABASE_PASSWORD = '
+      line: 'DATABASE_PASSWORD = {{ miarecweb_db_password }}'
+    - regexp: '^REDIS_HOST = '
+      line: 'REDIS_HOST = {{ miarecweb_redis_host }}'
+    - regexp: '^REDIS_PORT = '
+      line: 'REDIS_PORT = {{ miarecweb_redis_port }}'
+    - regexp: '^miarec.jobs_log_directory = '
+      line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
+    - regexp: '^deform_mako.module_directory = '
+      line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
+
+
+# --------------------------------------------------
+# Cleanup
+# --------------------------------------------------
+- name: Clean up the downloaded files
+  file: 
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
+    - "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}.asc"
+  when: miarecweb_cleanup_downloads|bool
+
