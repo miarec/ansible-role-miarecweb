@@ -61,6 +61,7 @@
 
 - name: Enable celerybeat service | systemd systems
   command: /sbin/chkconfig celerybeat on
+  notify: start celerybeat
   when: ansible_service_mgr|default() == "systemd" and not celerybeat_service_exists.stdout|bool
 
 
@@ -68,13 +69,8 @@
   service: 
     name: celerybeat 
     enabled: yes
+  notify: start celerybeat
   when: ansible_service_mgr|default() != "systemd"
-
-
-- name: Start celerybeat service
-  service: 
-    name: celerybeat 
-    state: started
 
 
 - name: Configure logrotate | celerybeat

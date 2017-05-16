@@ -84,6 +84,7 @@
 # where SystemD is a default service manager
 - name: Enable celeryd service | systemd systems
   command: /sbin/chkconfig celeryd on
+  notify: start celeryd
   when: ansible_service_mgr|default() == "systemd" and not celeryd_service_exists.stdout|bool
 
 
@@ -92,13 +93,8 @@
   service: 
     name: celeryd 
     enabled: yes
+  notify: start celeryd
   when: ansible_service_mgr|default() != "systemd"
-
-
-- name: Start celeryd service
-  service: 
-    name: celeryd 
-    state: started
 
 
 - name: Configure logrotate | celery

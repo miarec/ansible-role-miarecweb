@@ -16,4 +16,19 @@
     name: celerybeat
     state: restarted
   when: miarecweb_install_celerybeat|bool
+
+- name: start celeryd
+  service: 
+    name: celeryd
+    state: started
+  when: miarecweb_install_celeryd|bool
+
+- name: start celerybeat
+  service: 
+    name: celerybeat
+    state: started
+  when: miarecweb_install_celerybeat|bool
+
+  
+
   
