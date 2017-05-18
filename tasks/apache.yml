@@ -52,11 +52,29 @@
 # --------------------------------------------------
 # Apache conf.d/miarec.conf
 # --------------------------------------------------
-- name: Install miarec.conf into apache conf.d directory
+- name: Install miarec.conf into apache conf.d directory | RedHat
   template:
     src: "apache-{{ apache_version_base }}-miarec.conf.j2"
     dest: "{{ apache_conf_path }}/miarec.conf"
   vars:
     wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  when: ansible_os_family == "RedHat"
+
+
+- name: Install miarec.conf into apache conf.d directory | Debian
+  template:
+    src: "apache-{{ apache_version_base }}-miarec.conf.j2"
+    dest: "{{ apache_conf_path }}/sites-available/miarec.conf"
+  vars:
+    wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  when: ansible_os_family == "Debian"
+
+
+- name: a2ensite miarec site | Debian
+  command: a2ensite miarec
+  args:
+    creates: "{{ apache_conf_path }}/sites-enabled/miarec.conf"
   notify: reload apache
+  when: ansible_os_family == "Debian"

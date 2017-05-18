@@ -43,7 +43,7 @@
 - name: Install celerybeat init.d service
   template:
     src: "etc_init.d_celerybeat.j2"
-    dest: "/etc/rc.d/init.d/celerybeat"
+    dest: "/etc/init.d/celerybeat"
     owner: root
     group: root
     mode: 0755

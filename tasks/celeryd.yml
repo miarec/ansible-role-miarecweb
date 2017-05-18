@@ -62,7 +62,7 @@
 - name: Install celery init.d service
   template:
     src: "etc_init.d_celeryd.j2"
-    dest: "/etc/rc.d/init.d/celeryd"
+    dest: "/etc/init.d/celeryd"
     owner: root
     group: root
     mode: 0755
