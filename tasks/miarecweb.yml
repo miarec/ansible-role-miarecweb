@@ -60,6 +60,25 @@
     path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
     state: touch
   when: miarecweb_pyenv_dir_exists.stat.exists == False
+  
+  
+- name: Upgrade setuptools
+  pip:
+    chdir: "{{ deploy_helper.new_release_path }}/app"
+    name: "setuptools"
+    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
+    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
+    extra_args: --upgrade 
+  when: miarecweb_pyenv_dir_exists.stat.exists == False  
+  
+- name: Upgrade PIP
+  pip:
+    chdir: "{{ deploy_helper.new_release_path }}/app"
+    name: "pip"
+    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
+    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
+    extra_args: --upgrade 
+  when: miarecweb_pyenv_dir_exists.stat.exists == False    
 
 - name: Create python virtual environment
   pip:
