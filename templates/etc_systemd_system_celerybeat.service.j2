@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=MiaRec CeleryBeat Service
+After=network.target
+
+[Service]
+Type=simple
+User={{ miarecweb_celery_user }}
+Group={{ miarecweb_celery_group }}
+EnvironmentFile=-/etc/default/celerybeat
+WorkingDirectory={{ miarecweb_root_dir }}/pyenv
+ExecStart=/bin/sh -c '${CELERY_BIN} beat \
+	-A ${CELERY_APP} --logfile=${CELERYBEAT_LOG_FILE} \
+	--loglevel="${CELERYBEAT_LOG_LEVEL}" ${CELERYBEAT_OPTS}'
+
+[Install]
+WantedBy=multi-user.target
+

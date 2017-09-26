@@ -39,6 +39,14 @@
     state: directory
 
 
+- name: Create PID directory for celery workers
+  file:
+    path: '{{ miarecweb_celery_pid_dir }}'
+    owner: '{{ miarecweb_celery_user }}'
+    group: '{{ miarecweb_celery_group }}'
+    state: directory
+
+
 - name: Create log directory for celery jobs
   file:
     path: '{{ miarecweb_log_dir }}/jobs'
@@ -59,7 +67,17 @@
   notify: reload celeryd
 
 
-- name: Install celery init.d service
+- name: create systemd tmpfiles configuration
+  template:
+    src: etc_tmpfiles.d_celeryd.conf.j2
+    dest: /etc/tmpfiles.d/celeryd.conf
+    mode: 0644
+  when:
+    - ansible_service_mgr|default() == 'systemd'
+    - (miarecweb_celery_pid_dir|dirname).startswith('/var/run') or (miarecweb_celery_pid_dir|dirname).startswith('/run')
+
+
+- name: Install celery service | init.d
   template:
     src: "etc_init.d_celeryd.j2"
     dest: "/etc/init.d/celeryd"
@@ -68,33 +86,26 @@
     mode: 0755
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  when: ansible_service_mgr|default() != "systemd"
 
 
-# Work around https://github.com/ansible/ansible-modules-core/issues/915
-# otherwise we'd use service enabled=yes
-- name: Check if service celeryd exists | systemd systems
-  shell: "if chkconfig --list | grep -q celeryd;   then echo true;   else echo false; fi;"
-  register: celeryd_service_exists
-  when: ansible_service_mgr|default() == "systemd"
-  changed_when: False
+- name: Install celery service | SystemD
+  template:
+    src: "etc_systemd_system_celeryd.service.j2"
+    dest: "/etc/systemd/system/celeryd.service"
+    owner: root
+    group: root
+    mode: 0755
+  vars:
+    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  when: ansible_service_mgr == "systemd"
 
 
-# Use chkconfig to enable service on SystemD systems
-# The celeryd is an init.d service. Ansible 'service' module is not able to enable it on systems, 
-# where SystemD is a default service manager
-- name: Enable celeryd service | systemd systems
-  command: /sbin/chkconfig celeryd on
-  notify: start celeryd
-  when: ansible_service_mgr|default() == "systemd" and not celeryd_service_exists.stdout|bool
-
-
-# On other systems (non-systemd) we can use Ansible "service" module
-- name: Enable celeryd service | non-systemd systems
+- name: Enable celery service
   service: 
     name: celeryd 
     enabled: yes
   notify: start celeryd
-  when: ansible_service_mgr|default() != "systemd"
 
 
 - name: Configure logrotate | celery

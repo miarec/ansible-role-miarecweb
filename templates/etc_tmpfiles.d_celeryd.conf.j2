@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+{% if (miarecweb_celery_pid_dir|dirname).startswith('/var/run') or (miarecweb_celery_pid_dir|dirname).startswith('/run') -%}
+d {{ miarecweb_celery_pid_dir|dirname }} 0755 {{ miarecweb_celery_user }} {{ miarecweb_celery_group }} -
+{% endif -%}
+d {{ miarecweb_celery_log_dir|dirname }} 0755 {{ miarecweb_celery_user }} {{ miarecweb_celery_group }} -
