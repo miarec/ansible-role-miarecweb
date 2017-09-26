@@ -1,6 +1,8 @@
 # {{ ansible_managed }}
-{% if ansible_os_family == "RedHat" -%}
-LoadModule wsgi_module modules/mod_wsgi.so
+LoadModule wsgi_module {{ mod_wsgi_file_path }}
+{% if ansible_os_family == "Debian" -%}
+WSGISocketPrefix /var/run/apache2/wsgi
+{% else -%}
 WSGISocketPrefix run/wsgi
 {% endif -%}
 

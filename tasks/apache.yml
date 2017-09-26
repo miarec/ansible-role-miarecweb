@@ -1,5 +1,24 @@
 
 ---
+
+- name: install dependencies | Debian
+  package:
+    pkg: "{{ item }}"
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+  with_items:
+    - apache2-dev
+  when: ansible_os_family == "Debian"
+
+- name: install dependencies | RedHat
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - httpd-devel
+  when: ansible_os_family == "RedHat"
+
 # ---------------------------------------------
 # Figure out what version of Apache is installed.
 # ---------------------------------------------
@@ -30,14 +49,19 @@
     state: directory
 
 
-# Apache needs write permissions to the directory used for incoming replication
-# We assume that such directory is owned by "miarec" group
-- name: Grant apache process an access to recordings directory
-  user:
-    name: "{{ apache_user }}"
-    groups: "{{ miarec_bin_group }}"
-    append: True
-  when: miarec_bin_group != 'root'
+- name: Install mod_wsgi python package
+  pip:
+    chdir: "{{ deploy_helper.new_release_path }}/app"
+    name: "mod_wsgi"
+    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
+    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
+
+
+- name: Get mod_wsgi module location
+  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
+  changed_when: false
+  check_mode: no
+  register: _mod_wsgi_file_path
 
 
 # --------------------------------------------------
@@ -59,6 +83,8 @@
   vars:
     wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
+  notify: reload apache
   when: ansible_os_family == "RedHat"
 
 
@@ -69,6 +95,8 @@
   vars:
     wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
+  notify: reload apache
   when: ansible_os_family == "Debian"
 
 
@@ -78,3 +106,14 @@
     creates: "{{ apache_conf_path }}/sites-enabled/miarec.conf"
   notify: reload apache
   when: ansible_os_family == "Debian"
+
+
+# Apache needs write permissions to the directory used for incoming replication
+# We assume that such directory is owned by "miarec" group
+- name: Grant apache process an access to recordings directory
+  user:
+    name: "{{ apache_user }}"
+    groups: "{{ miarec_bin_group }}"
+    append: True
+  when: miarec_bin_group != 'root'
+
