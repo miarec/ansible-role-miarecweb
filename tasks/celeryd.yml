@@ -86,6 +86,7 @@
     mode: 0755
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  notify: start celeryd
   when: ansible_service_mgr|default() != "systemd"
 
 
@@ -98,6 +99,7 @@
     mode: 0755
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+  notify: start celeryd
   when: ansible_service_mgr == "systemd"
 
 
@@ -105,7 +107,6 @@
   service: 
     name: celeryd 
     enabled: yes
-  notify: start celeryd
 
 
 - name: Configure logrotate | celery
