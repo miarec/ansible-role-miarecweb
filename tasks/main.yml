@@ -80,5 +80,8 @@
     - reload apache
     - reload celeryd
     - reload celerybeat
+    - start apache
+    - start celeryd
+    - start celerybeat
 
 

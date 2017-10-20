@@ -5,6 +5,12 @@
     state: reloaded
   when: miarecweb_install_apache|bool
 
+- name: start apache
+  service: 
+    name: "{{ apache_service }}"
+    state: started
+  when: miarecweb_install_apache|bool
+
 - name: reload celeryd
   service: 
     name: celeryd
