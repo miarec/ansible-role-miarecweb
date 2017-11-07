@@ -14,6 +14,7 @@
     - openssl
     - libssl-dev
     - libffi-dev
+    - unixodbc-dev
   when: ansible_os_family == "Debian"
 
 - name: install dependencies | RedHat
@@ -29,5 +30,6 @@
     - libxml2-devel
     - libxslt-devel
     - postgresql-devel
+    - unixODBC-devel
   when: ansible_os_family == "RedHat"
 
