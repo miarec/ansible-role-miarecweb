@@ -74,7 +74,7 @@
     mode: 0644
   when:
     - ansible_service_mgr|default() == 'systemd'
-    - (miarecweb_celery_pid_dir|dirname).startswith('/var/run') or (miarecweb_celery_pid_dir|dirname).startswith('/run')
+    - miarecweb_celery_pid_dir.startswith('/var/run') or miarecweb_celery_pid_dir.startswith('/run')
 
 
 - name: Install celery service | init.d
