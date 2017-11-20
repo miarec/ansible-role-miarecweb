@@ -3,6 +3,7 @@
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini current"
   register: _alembic_current_revision
   changed_when: False
+  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - set_fact:
     ## Get last line, expected output in cause of up to date:
@@ -13,11 +14,12 @@
     ## 
     ## Note: '(head)' is displayed only if the revision identifier for this databse matches the head revision (i.e. up-to-date).
     alembic_current_revision: "{{ _alembic_current_revision.stdout.split('\n')[-1] }}"
+    when: '_alembic_current_revision is defined'
 
 - debug:
     var: alembic_current_revision
 
 - name: Upgrade database layout
   command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade head"
-  when: '" (head)" not in alembic_current_revision'
+  when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
 
