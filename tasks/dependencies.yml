@@ -10,6 +10,7 @@
     state: present
   with_items:
     - gcc
+    - g++
     - make
     - openssl
     - libssl-dev
@@ -23,6 +24,7 @@
     state: present
   with_items:
     - gcc
+    - gcc-c++
     - make
     - openssl
     - openssl-devel
