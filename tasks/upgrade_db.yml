@@ -15,11 +15,14 @@
     ## Note: '(head)' is displayed only if the revision identifier for this databse matches the head revision (i.e. up-to-date).
     alembic_current_revision: "{{ _alembic_current_revision.stdout.split('\n')[-1] }}"
     when: '_alembic_current_revision is defined'
+  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - debug:
     var: alembic_current_revision
+  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Upgrade database layout
   command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade head"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
+  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
