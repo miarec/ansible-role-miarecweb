@@ -90,13 +90,20 @@
   when: ansible_service_mgr|default() != "systemd"
 
 
+- name: Remove /etc/init.d/celeryd | SystemD
+  file:
+    path: "/etc/init.d/celeryd"
+    state: absent
+  when: ansible_service_mgr == "systemd"
+
+
 - name: Install celery service | SystemD
   template:
     src: "etc_systemd_system_celeryd.service.j2"
     dest: "/etc/systemd/system/celeryd.service"
     owner: root
     group: root
-    mode: 0755
+    mode: 0644
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify: start celeryd
