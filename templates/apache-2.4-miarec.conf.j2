@@ -19,6 +19,9 @@ Alias /static {{ miarecweb_root_dir }}/app/miarecweb/static
 
 WSGIScriptAlias / {{ miarecweb_root_dir }}/miarec.wsgi process-group=miarec
 
+# Custom error page (for 500 Internal Server Error). More user-friendly
+ErrorDocument 500 /error
+
 <Directory {{ miarecweb_root_dir }}/app/miarecweb/static>
   AllowOverride None
   Require all granted
