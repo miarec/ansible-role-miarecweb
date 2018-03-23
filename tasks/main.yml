@@ -12,6 +12,7 @@
 # Install dependencies
 # ---------------------------------------------
 - include: dependencies.yml
+  become: yes
 
 # ---------------------------------------------
 # Verify python installation on this server
@@ -29,6 +30,7 @@
 - name: check if python version {{ python_version }} installed
   command: "which {{ python_install_dir }}/bin/{{ python_exec }}"
   changed_when: False
+  become: yes
 
 
 # --------------------------------------------------
@@ -38,33 +40,39 @@
   deploy_helper:
     path: "{{ miarecweb_install_dir }}"
     release: "{{ miarecweb_version }}"
+  become: yes
 
 
 # --------------------------------------------------
 # Install/upgrade 'miarecweb' app files
 # --------------------------------------------------
 - include: miarecweb.yml
+  become: yes
 
 # --------------------------------------------------
 # Upgrade database layout
 # --------------------------------------------------
 - include: upgrade_db.yml
   when: miarecweb_upgrade_db|bool
+  become: yes
 
 # --------------------------------------------------
 # Configure apache web server
 # --------------------------------------------------
 - include: apache.yml
   when: miarecweb_install_apache|bool
+  become: yes
 
 # --------------------------------------------------
 # Configure celery + celerybeat
 # --------------------------------------------------
 - include: celeryd.yml
   when: miarecweb_install_celeryd|bool
+  become: yes
 
 - include: celerybeat.yml
   when: miarecweb_install_celerybeat|bool
+  become: yes
 
 
 # --------------------------------------------------
@@ -83,5 +91,6 @@
     - start apache
     - start celeryd
     - start celerybeat
+  become: yes
 
 

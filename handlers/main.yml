@@ -4,36 +4,42 @@
     name: "{{ apache_service }}"
     state: reloaded
   when: miarecweb_install_apache|bool
+  become: yes
 
 - name: start apache
   service: 
     name: "{{ apache_service }}"
     state: started
   when: miarecweb_install_apache|bool
+  become: yes
 
 - name: reload celeryd
   service: 
     name: celeryd
     state: restarted
   when: miarecweb_install_celeryd|bool
+  become: yes
 
 - name: reload celerybeat
   service: 
     name: celerybeat
     state: restarted
   when: miarecweb_install_celerybeat|bool
+  become: yes
 
 - name: start celeryd
   service: 
     name: celeryd
     state: started
   when: miarecweb_install_celeryd|bool
+  become: yes
 
 - name: start celerybeat
   service: 
     name: celerybeat
     state: started
   when: miarecweb_install_celerybeat|bool
+  become: yes
 
   
 
