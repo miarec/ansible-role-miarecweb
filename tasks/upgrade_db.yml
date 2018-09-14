@@ -17,12 +17,31 @@
     when: '_alembic_current_revision is defined'
   run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
-- debug:
+- name: Alembic current revision
+  debug:
     var: alembic_current_revision
+  when: '_alembic_current_revision is defined'
   run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Upgrade database layout
-  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade head"
+  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade head"
+  register: _alembic_upgrade_head
+  when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
+  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+
+- name: Alembic upgrade results
+  debug: 
+    msg: "{{ _alembic_upgrade_head.stderr_lines }}"
+  when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
+  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+
+- name: Update database statistics (ANALYZE)
+  command: 'psql -c "ANALYZE"'
+  environment:
+    PGUSER: "{{ miarecweb_db_user }}"
+    PGPASSWORD: "{{ miarecweb_db_password }}"
+    PGDATABASE: "{{ miarecweb_db_name }}"
+    PGHOST: "{{ miarecweb_db_host }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
