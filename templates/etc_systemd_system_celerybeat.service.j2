@@ -12,7 +12,7 @@ EnvironmentFile=-/etc/default/celerybeat
 WorkingDirectory={{ miarecweb_root_dir }}/pyenv
 ExecStart=/bin/sh -c '${CELERY_BIN} beat \
 	-A ${CELERY_APP} --logfile=${CELERYBEAT_LOG_FILE} \
-	--loglevel="${CELERYBEAT_LOG_LEVEL}" ${CELERYBEAT_OPTS}'
+	--loglevel="${CELERYBEAT_LOG_LEVEL}" ${CELERYBEAT_OPTS} --pidfile="${CELERYBEAT_PID_FILE}"'
 
 [Install]
 WantedBy=multi-user.target
