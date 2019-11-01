@@ -16,9 +16,7 @@ postgresql_bin_directory: /usr/bin
 
 
 # ----------------------------
-# Application settings:
-#   - database connection
-#   - redis connection
+# Database settings
 # ----------------------------
 miarecweb_db_host: 127.0.0.1
 miarecweb_db_port: 5432
@@ -26,9 +24,21 @@ miarecweb_db_name: miarecdb
 miarecweb_db_user: miarec
 miarecweb_db_password: password
 
+miarecweb_db_pool_size: 20
+miarecweb_db_pool_recycle: -1
+miarecweb_db_pool_use_lifo: True
+
+# -----------------------------
+# Redis settings
+# -----------------------------
 miarecweb_redis_host: 127.0.0.1
 miarecweb_redis_port: 6379
 
+miarecweb_redis_socket_timeout: 60
+miarecweb_redis_socket_connect_timeout: 60
+miarecweb_redis_socket_keepalive: True
+miarecweb_redis_health_check_interval: 300
+miarecweb_redis_pool_recycle: -1
 
 # -----------------------------
 # Optional components
