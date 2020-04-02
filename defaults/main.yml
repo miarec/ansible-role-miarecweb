@@ -48,6 +48,8 @@ miarecweb_install_apache: yes
 miarecweb_install_celeryd: yes
 miarecweb_install_celerybeat: yes
 
+miarecweb_force_https: yes
+
 
 # -----------------------------
 # MiaRec user group

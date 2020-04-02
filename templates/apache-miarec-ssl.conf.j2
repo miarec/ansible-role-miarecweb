@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+NameVirtualHost *:80
+<VirtualHost *:80>
+    RewriteEngine on
+    RewriteCond %{HTTP_HOST}%{REQUEST_URI} !^127.0.0.1/notify
+    RewriteRule ^/(.*) https://%{HTTP_HOST}/$1 [NC,R=301,L]
+</VirtualHost>
