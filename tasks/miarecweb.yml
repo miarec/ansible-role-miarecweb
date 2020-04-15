@@ -62,36 +62,36 @@
   when: miarecweb_pyenv_dir_exists.stat.exists == False
   
   
-- name: Upgrade setuptools
-  pip:
-    chdir: "{{ deploy_helper.new_release_path }}/app"
-    name: "setuptools"
-    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
-    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
-    extra_args: --upgrade 
-  when: miarecweb_pyenv_dir_exists.stat.exists == False  
+- name: Create python virtual environment
+  command:
+    cmd: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }} {{ deploy_helper.new_release_path }}/pyenv" 
+    creates: "{{ deploy_helper.new_release_path }}/pyenv"
+  when: miarecweb_pyenv_dir_exists.stat.exists == False
+
   
 - name: Upgrade PIP
-  pip:
+  command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    name: "pip"
-    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
-    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
-    extra_args: --upgrade 
+    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/python -m pip install --upgrade pip"
   when: miarecweb_pyenv_dir_exists.stat.exists == False    
 
-- name: Create python virtual environment
-  pip:
+  
+- name: Upgrade setuptools
+  command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    name: "."
-    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
-    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
-    extra_args: -e 
+    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install --upgrade setuptools"
+  when: miarecweb_pyenv_dir_exists.stat.exists == False    
+
+  
+- name: Install MiaRec into python virtual environment
+  command:
+    chdir: "{{ deploy_helper.new_release_path }}/app"
+    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install -e ."
   environment:
     # We need to add 'pg_config' to PATH. Otherwise psycopg2 build fails
     PATH: "{{ postgresql_bin_directory }}:{{ ansible_env.PATH }}"
   when: miarecweb_pyenv_dir_exists.stat.exists == False
-
+  
 
 # --------------------------------------------------
 # Configuration file production.ini

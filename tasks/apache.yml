@@ -50,13 +50,12 @@
 
 
 - name: Install mod_wsgi python package
-  pip:
+  command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    name: "mod_wsgi"
-    virtualenv: "{{ deploy_helper.new_release_path }}/pyenv"
-    virtualenv_command: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }}"
+    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install mod_wsgi"
+    creates: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express"
 
-
+    
 - name: Get mod_wsgi module location
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
   changed_when: false
