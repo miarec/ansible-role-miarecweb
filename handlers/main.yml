@@ -41,6 +41,9 @@
   when: miarecweb_install_celerybeat|bool
   become: yes
 
+- name: reload systemd
+  become: yes
+  command: systemctl daemon-reload
   
 
   

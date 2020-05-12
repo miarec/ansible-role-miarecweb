@@ -51,7 +51,8 @@
     mode: 0755
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
-  notify: start celerybeat
+  notify: 
+    - start celerybeat
   when: ansible_service_mgr|default() != "systemd"
 
 - name: Remove /etc/init.d/celerybeat | SystemD
@@ -70,7 +71,9 @@
     mode: 0644
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
-  notify: start celerybeat
+  notify: 
+    - reload celerybeat
+    - reload systemd
   when: ansible_service_mgr == "systemd"
 
 
