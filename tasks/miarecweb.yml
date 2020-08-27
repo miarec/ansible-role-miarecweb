@@ -102,6 +102,7 @@
     dest: "{{ deploy_helper.new_release_path }}/production.ini"
     force: False
     remote_src: True
+    mode: 0644
 
 
 - name: Configure production.ini file

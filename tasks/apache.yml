@@ -71,6 +71,7 @@
     src: "{{ deploy_helper.new_release_path }}/app/miarec.wsgi.sample"
     dest: "{{ deploy_helper.new_release_path }}/miarec.wsgi"
     remote_src: True
+    mode: 0644
 
 # --------------------------------------------------
 # Apache conf.d/miarec.conf
