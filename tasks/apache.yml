@@ -140,7 +140,7 @@
 
 
 - name: a2ensite default-ssl site | Debian
-  command: a2ensite letsencrypt-well-known
+  command: a2ensite default-ssl
   args:
     creates: "{{ apache_conf_path }}/sites-enabled/default-ssl.conf"
   notify: reload apache
