@@ -3,7 +3,7 @@
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini current"
   register: _alembic_current_revision
   changed_when: False
-  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+  run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - set_fact:
     ## Get last line, expected output in cause of up to date:
@@ -15,25 +15,25 @@
     ## Note: '(head)' is displayed only if the revision identifier for this databse matches the head revision (i.e. up-to-date).
     alembic_current_revision: "{{ _alembic_current_revision.stdout.split('\n')[-1] }}"
     when: '_alembic_current_revision is defined'
-  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+  run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Alembic current revision
   debug:
     var: alembic_current_revision
   when: '_alembic_current_revision is defined'
-  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+  run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Upgrade database layout
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade head"
   register: _alembic_upgrade_head
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
-  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+  run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Alembic upgrade results
   debug: 
     msg: "{{ _alembic_upgrade_head.stderr_lines }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
-  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+  run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Update database statistics (ANALYZE)
   command: 'psql -c "ANALYZE"'
@@ -43,5 +43,5 @@
     PGDATABASE: "{{ miarecweb_db_name }}"
     PGHOST: "{{ miarecweb_db_host }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
-  run_once: True   # execute this task once during a playbook execution, even though the role is applied to many hosts
+  run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 

@@ -44,6 +44,7 @@ miarecweb_redis_pool_recycle: -1
 # Optional components
 # -----------------------------
 miarecweb_upgrade_db: yes
+miarecweb_upgrade_db_once: True
 miarecweb_install_apache: yes
 miarecweb_install_celeryd: yes
 miarecweb_install_celerybeat: yes
