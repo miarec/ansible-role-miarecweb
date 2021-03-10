@@ -37,5 +37,5 @@ ErrorDocument 500 /error
 <IfModule mod_remoteip.c>
   RemoteIPHeader X-Forwarded-For
   RemoteIPTrustedProxy {{ miarecweb_trusted_proxy }}
-  RemoteIPHeader X-Forwarded-For
+</IfModule>
 {% endif -%}
