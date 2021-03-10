@@ -117,4 +117,20 @@ miarecweb_cleanup_downloads: yes
 # installed again even if it's found on the system.
 # miarecweb_force_install: no  
 
-
+# Custom settings for "production.ini" file
+# Example in YAML file:
+#
+#   miarecweb_custom_ini_setttings:
+#     - section: "server:main"
+#       option: "trusted_proxy"
+#       value: "*"
+#     - section: "server:main"
+#       option: "trusted_proxy_headers"
+#       value: "x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port"
+#
+# It can be defined in inventory file using the following construct:
+#
+#   [all:vars]
+#   miarecweb_custom_ini_settings = [{ 'section': 'server:main', 'option': 'trusted_proxy', 'value': '*' }]
+#
+miarecweb_custom_ini_settings: []

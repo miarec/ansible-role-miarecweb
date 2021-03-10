@@ -145,7 +145,25 @@
       line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
     - regexp: '^deform_mako.module_directory = '
       line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
+  notify: 
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
 
+# --------------------------------------------------
+# Custom configuration settings in INI file
+# --------------------------------------------------
+- name: Custom production.ini file settings
+  ini_file:
+    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: "{{ miarecweb_custom_ini_settings }}"
+  notify: 
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
 
 # --------------------------------------------------
 # Cleanup
