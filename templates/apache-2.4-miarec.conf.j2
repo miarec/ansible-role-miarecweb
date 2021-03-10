@@ -32,3 +32,10 @@ ErrorDocument 500 /error
     Require all granted
   </Files>
 </Directory>
+
+{% if miarecweb_trusted_proxy | trim != '' -%}
+<IfModule mod_remoteip.c>
+  RemoteIPHeader X-Forwarded-For
+  RemoteIPTrustedProxy {{ miarecweb_trusted_proxy }}
+  RemoteIPHeader X-Forwarded-For
+{% endif -%}

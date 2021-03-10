@@ -134,3 +134,12 @@ miarecweb_cleanup_downloads: yes
 #   miarecweb_custom_ini_settings = [{ 'section': 'server:main', 'option': 'trusted_proxy', 'value': '*' }]
 #
 miarecweb_custom_ini_settings: []
+
+# When provided, the trusted proxy (or multiple proxies) are added
+# to Apache config file in "RemoteIPTrustedProxy" directive.
+# Example:
+#   miarecweb_trusted_proxy: 127.0.0.1
+#
+# Multiple values are supported:
+#   miarecweb_trusted_proxy: 10.0.0.2 10.0.0.3
+miarecweb_trusted_proxy: 
