@@ -36,7 +36,7 @@ ErrorDocument 500 /error
   </Files>
 </Directory>
 
-{% if miarecweb_trusted_proxy | trim != '' -%}
+{% if miarecweb_trusted_proxy|default("")|trim != '' -%}
 <IfModule mod_remoteip.c>
   RemoteIPHeader X-Forwarded-For
   RemoteIPTrustedProxy {{ miarecweb_trusted_proxy }}
