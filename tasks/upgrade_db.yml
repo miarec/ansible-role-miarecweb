@@ -42,6 +42,7 @@
     PGPASSWORD: "{{ miarecweb_db_password }}"
     PGDATABASE: "{{ miarecweb_db_name }}"
     PGHOST: "{{ miarecweb_db_host }}"
+    PGPORT: "{{ miarecweb_db_port }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
