@@ -101,7 +101,7 @@ miarecweb_celery_log_dir: '{{ miarecweb_log_dir }}/celery'
 
 
 # Download files location
-miarecweb_download_base_url: "https://www.miarec.com/files/download"
+miarecweb_download_base_url: "https://miarec-download.s3.amazonaws.com"
 miarecweb_tarball_file: "miarecweb-{{ miarecweb_version }}.tar.gz"
 
 # Directory where to download miarecweb files
