@@ -40,6 +40,12 @@ miarecweb_redis_socket_keepalive: True
 miarecweb_redis_health_check_interval: 300
 miarecweb_redis_pool_recycle: -1
 
+
+# A secret key used for encrypting secrets in the database.
+# If the secret changes or is unknown, no encrypted fields in the database will be accessible.
+# It must be unique for each deployment, but stay the same between software updates
+miarecweb_secret: 
+
 # -----------------------------
 # Optional components
 # -----------------------------
