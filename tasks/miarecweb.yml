@@ -119,8 +119,6 @@
       line: 'DATABASE_NAME = {{ miarecweb_db_name }}'
     - regexp: '^DATABASE_USER = '
       line: 'DATABASE_USER = {{ miarecweb_db_user }}'
-    - regexp: '^DATABASE_PASSWORD = '
-      line: 'DATABASE_PASSWORD = {{ miarecweb_db_password }}'
     - regexp: '^DATABASE_POOL_SIZE = '
       line: 'DATABASE_POOL_SIZE = {{ miarecweb_db_pool_size }}'
     - regexp: '^DATABASE_POOL_RECYCLE = '
@@ -145,6 +143,23 @@
       line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
     - regexp: '^deform_mako.module_directory = '
       line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
+  notify: 
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
+
+
+- name: Configure secrets in production.ini file
+  lineinfile:
+    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: '^DATABASE_PASSWORD = '
+      line: 'DATABASE_PASSWORD = {{ miarecweb_db_password }}'
+    - regexp: '^miarec.secret ='
+      line: 'miarec.secret = {{ miarecweb_secret }}'
+  no_log: true
   notify: 
     - reload apache
     - reload celeryd
