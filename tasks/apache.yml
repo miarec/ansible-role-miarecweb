@@ -55,6 +55,13 @@
     cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install mod_wsgi"
     creates: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express"
 
+
+- name: Make pyenv directory readable (after mod_wsgi install)
+  file:
+    path: "{{ deploy_helper.new_release_path }}/pyenv"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes
+
     
 - name: Get mod_wsgi module location
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
