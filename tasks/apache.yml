@@ -107,14 +107,6 @@
   notify: reload apache
   when: ansible_os_family == "Debian"
 
-# --------------------------------------------------
-# Create "miarec" group if necesasry
-# --------------------------------------------------
-- name: "Add miarec group '{{ miarec_bin_group }}'"
-  group:
-    name: "{{ miarec_bin_group }}"
-    state: present
-  when: miarec_bin_group != 'root'
 
 # Apache needs write permissions to the directory used for incoming replication
 # We assume that such directory is owned by "miarec" group
