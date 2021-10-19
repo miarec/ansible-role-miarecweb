@@ -8,6 +8,7 @@ After=network.target
 Type=forking
 User={{ miarecweb_celery_user }}
 Group={{ miarecweb_celery_group }}
+UMask={{ miarecweb_celery_umask }}
 EnvironmentFile=-/etc/default/celeryd
 WorkingDirectory={{ miarecweb_root_dir }}/pyenv
 ExecStart=/bin/sh -c '${CELERY_BIN} multi start $CELERYD_NODES \

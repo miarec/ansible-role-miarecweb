@@ -8,6 +8,7 @@ After=network.target
 Type=simple
 User={{ miarecweb_celery_user }}
 Group={{ miarecweb_celery_group }}
+UMask={{ miarecweb_celery_umask }}
 MemoryAccounting=true
 MemoryLimit=1024M
 Restart=on-failure

@@ -101,6 +101,7 @@ miarecweb_log_dir: /var/log/miarecweb
 # -----------------------------
 miarecweb_celery_user: root
 miarecweb_celery_group: root
+miarecweb_celery_umask: "0002"
 miarecweb_celery_pid_dir: /var/run/celery
 miarecweb_celery_log_level: INFO
 miarecweb_celery_log_dir: '{{ miarecweb_log_dir }}/celery'
