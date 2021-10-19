@@ -3,9 +3,7 @@
   file:
     path: '{{ deploy_helper.new_release_path }}'
     state: directory
-    owner: root
-    group: '{{ miarec_bin_group }}'
-    mode: "0755"
+    mode: u=rwX,g=rX,o=rX
 
 # --------------------------------------------------
 # Download and extract miarecweb files into .../releases/{version}/app folder
@@ -37,9 +35,7 @@
     dest: "{{ miarecweb_download_dir }}/"
     creates: "{{ miarecweb_download_dir }}/miarecweb-{{ miarecweb_version }}"
     copy: no
-    owner: root
-    group: '{{ miarec_bin_group }}'
-    mode: "0755"
+    mode: u=rwX,g=rX,o=rX
   when: miarecweb_app_dir_exists.stat.exists == False
 
 
@@ -74,7 +70,6 @@
     creates: "{{ deploy_helper.new_release_path }}/pyenv"
   when: miarecweb_pyenv_dir_exists.stat.exists == False
 
-  
 - name: Upgrade PIP
   command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
@@ -99,6 +94,12 @@
   when: miarecweb_pyenv_dir_exists.stat.exists == False
   
 
+- name: Make pyenv directory readable
+  file:
+    path: "{{ deploy_helper.new_release_path }}/pyenv"
+    mode: u=rwX,g=rX,o=rX
+  
+
 # --------------------------------------------------
 # Configuration file production.ini
 # --------------------------------------------------
@@ -108,9 +109,7 @@
     dest: "{{ deploy_helper.new_release_path }}/production.ini"
     force: False
     remote_src: True
-    owner: root
-    group: '{{ miarec_bin_group }}'
-    mode: "0644"
+    mode: u=rwX,g=rX,o=rX
 
 
 - name: Configure production.ini file
