@@ -50,7 +50,7 @@
     release: "{{ miarecweb_version }}"
     owner: root
     group: '{{ miarec_bin_group }}'
-    mode: 750
+    mode: "0755"
   become: yes
 
 # --------------------------------------------------
