@@ -98,6 +98,7 @@
   file:
     path: "{{ deploy_helper.new_release_path }}/pyenv"
     mode: u=rwX,g=rX,o=rX
+    recurse: yes
   
 
 # --------------------------------------------------
