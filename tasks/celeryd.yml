@@ -28,7 +28,7 @@
     name: "{{ miarecweb_celery_user }}"
     groups: "{{ miarec_bin_group }}"
     append: True
-  when: miarecweb_celery_user != 'root'
+  when: miarecweb_celery_user != 'root' and miarecweb_celery_group != miarec_bin_group
 
 
 - name: Create log directory for celery workers

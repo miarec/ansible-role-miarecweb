@@ -103,6 +103,9 @@
 
 # --------------------------------------------------
 # Configuration file production.ini
+# It must have permissions:
+#   - read-only access for group "miarec"
+#   - no access for other users
 # --------------------------------------------------
 - name: Copy production.ini file
   copy:
@@ -110,7 +113,9 @@
     dest: "{{ deploy_helper.new_release_path }}/production.ini"
     force: False
     remote_src: True
-    mode: u=rwX,g=rX,o=rX
+    owner: root
+    group: '{{ miarec_bin_group }}'
+    mode: u=rwX,g=rX,o=
 
 
 - name: Configure production.ini file
