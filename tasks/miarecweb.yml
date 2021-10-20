@@ -113,9 +113,32 @@
     dest: "{{ deploy_helper.new_release_path }}/production.ini"
     force: False
     remote_src: True
+
+
+# --------------------------------------------------
+# When using non-root group, then the configuration file must have permissions:
+#   - read-only access for group "miarec"
+#   - no access for other users
+# --------------------------------------------------
+- name: Configure file permissions on productio.ini file ("miarec" group is not created)
+  file:
+    path: "{{ deploy_helper.new_release_path }}/production.ini"
     owner: root
     group: '{{ miarec_bin_group }}'
     mode: u=rwX,g=rX,o=
+  when: miarec_bin_group != 'root'
+
+
+# --------------------------------------------------
+# When using root group, then the configuration file must have permissions:
+#   - read-only access for other users, 
+#     which includes Apache service (httpd:httpd)
+# --------------------------------------------------
+- name: Configure file permissions on productio.ini file ("miarec" group exists)
+  file:
+    path: "{{ deploy_helper.new_release_path }}/production.ini"
+    mode: u=rwX,g=rX,o=rX
+  when: miarec_bin_group == 'root'
 
 
 - name: Configure production.ini file
