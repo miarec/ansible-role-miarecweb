@@ -24,7 +24,7 @@
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Upgrade database layout
-  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade head"
+  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade heads"
   register: _alembic_upgrade_head
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
