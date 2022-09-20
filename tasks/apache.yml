@@ -87,6 +87,7 @@
   template:
     src: "apache-{{ apache_version_base }}-miarec.conf.j2"
     dest: "{{ apache_conf_path }}/miarec.conf"
+    mode: 0644
   vars:
     wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
@@ -99,6 +100,7 @@
   template:
     src: "apache-{{ apache_version_base }}-miarec.conf.j2"
     dest: "{{ apache_conf_path }}/sites-available/miarec.conf"
+    mode: 0644
   vars:
     wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
@@ -115,7 +117,9 @@
   when: ansible_os_family == "Debian"
 
 
-# Apache needs write permissions to the directory used for incoming replication
+# Apache needs:
+#  - read permissions to miarecweb python files (/opt/miarecweb/current/)
+#  - write permissions to the directory used for incoming replication
 # We assume that such directory is owned by "miarec" group
 - name: Grant apache process an access to recordings directory
   user:
@@ -169,6 +173,7 @@
   template:
     src: "apache-miarec-ssl.conf.j2"
     dest: "{{ apache_conf_path }}/sites-available/miarec-ssl.conf"
+    mode: 0644
   notify: reload apache
   when: miarecweb_force_https|bool and ansible_os_family == "Debian"
 
