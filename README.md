@@ -18,12 +18,13 @@ Role Variables
 - `miarecweb_db_password`: The PostgreSQL database password (default: password)
 - `miarecweb_redis_host`: The Redis host (default: 127.0.0.1)
 - `miarecweb_redis_port`: The Redis port (default: 6379)
-- `python_version`: The python version to install miarecweb. Caution! The python should be installed in advance 
+- `python_version`: The python version to install miarecweb. Caution! The python should be installed in advance
 - `python_install_dir`: The location of the installed python files (default is /usr/local)
-- `postgresql_version`: The vesion of PostgreSQL to link with. Caution! The PostgreSQL should be installed in advance 
+- `postgresql_version`: The vesion of PostgreSQL to link with. Caution! The PostgreSQL should be installed in advance
 - `postgresql_bin_directory`: The location of pg_config binaries
-- `miarecweb_install_dir`: The installation directory (default: /opt/miarecweb) 
+- `miarecweb_install_dir`: The installation directory (default: /opt/miarecweb)
 - `miarecweb_log_dir`: The location of log files (default: /var/log/miarecweb)
+- `miarecweb_secret`: A secret key used for encrypting secrets in the database
 
 Example Playbook
 ----------------

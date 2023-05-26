@@ -13,9 +13,8 @@
     msg: Parameters 'miarecweb_secret' must be provided.
   when: not miarecweb_secret
 
-- name: Check for illeagal characters in secrets.
+- name: Check for illeagal character in secrets.
   fail:
-    msg: Illeagal character in secret variable.
+    msg: Illeagal character, miarecweb_secret or miarecweb_db_password cannot contain '%'.
   when:
-    - miarecweb_secret is search("%")
-    - miarecweb_db_password is search("%")
+    - miarecweb_secret is search("%") or miarecweb_db_password is search("%")
