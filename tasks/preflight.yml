@@ -1,0 +1,21 @@
+---
+# Include variables and define needed variables.
+- name: gather os specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml"
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+
+- name: Check for miarecweb_secret variable.
+  fail:
+    msg: Parameters 'miarecweb_secret' must be provided.
+  when: not miarecweb_secret
+
+- name: Check for illeagal characters in secrets.
+  fail:
+    msg: Illeagal character in secret variable.
+  when:
+    - miarecweb_secret is search("%")
+    - miarecweb_db_password is search("%")
