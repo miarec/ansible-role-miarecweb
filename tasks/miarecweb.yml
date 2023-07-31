@@ -62,11 +62,10 @@
     path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
     state: touch
   when: miarecweb_pyenv_dir_exists.stat.exists == False
-  
-  
+
 - name: Create python virtual environment
   command:
-    cmd: "{{ python_install_dir }}/bin/pyvenv-{{ python_version_base }} {{ deploy_helper.new_release_path }}/pyenv" 
+    cmd: "{{ python_install_dir }}/bin/python{{ python_version_base }} -m venv {{ deploy_helper.new_release_path }}/pyenv"
     creates: "{{ deploy_helper.new_release_path }}/pyenv"
   when: miarecweb_pyenv_dir_exists.stat.exists == False
 
@@ -74,16 +73,16 @@
   command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
     cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/python -m pip install --upgrade pip"
-  when: miarecweb_pyenv_dir_exists.stat.exists == False    
+  when: miarecweb_pyenv_dir_exists.stat.exists == False
 
-  
+
 - name: Upgrade setuptools
   command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
     cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install --upgrade setuptools"
-  when: miarecweb_pyenv_dir_exists.stat.exists == False    
+  when: miarecweb_pyenv_dir_exists.stat.exists == False
 
-  
+
 - name: Install MiaRec into python virtual environment
   command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
@@ -92,14 +91,14 @@
     # We need to add 'pg_config' to PATH. Otherwise psycopg2 build fails
     PATH: "{{ postgresql_bin_directory }}:{{ ansible_env.PATH }}"
   when: miarecweb_pyenv_dir_exists.stat.exists == False
-  
+
 
 - name: Make pyenv directory readable
   file:
     path: "{{ deploy_helper.new_release_path }}/pyenv"
     mode: u=rwX,g=rX,o=rX
     recurse: yes
-  
+
 
 # --------------------------------------------------
 # Configuration file production.ini
@@ -131,7 +130,7 @@
 
 # --------------------------------------------------
 # When using root group, then the configuration file must have permissions:
-#   - read-only access for other users, 
+#   - read-only access for other users,
 #     which includes Apache service (httpd:httpd)
 # --------------------------------------------------
 - name: Configure file permissions on productio.ini file (no "miarec" group)
@@ -179,7 +178,7 @@
       line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
     - regexp: '^deform_mako.module_directory = '
       line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
-  notify: 
+  notify:
     - reload apache
     - reload celeryd
     - reload celerybeat
@@ -196,7 +195,7 @@
     - regexp: '^miarec.secret ='
       line: 'miarec.secret = {{ miarecweb_secret }}'
   no_log: true
-  notify: 
+  notify:
     - reload apache
     - reload celeryd
     - reload celerybeat
@@ -211,7 +210,7 @@
     option: "{{ item.option }}"
     value: "{{ item.value }}"
   with_items: "{{ miarecweb_custom_ini_settings }}"
-  notify: 
+  notify:
     - reload apache
     - reload celeryd
     - reload celerybeat
@@ -220,7 +219,7 @@
 # Cleanup
 # --------------------------------------------------
 - name: Clean up the downloaded files
-  file: 
+  file:
     path: '{{ item }}'
     state: absent
   with_items:
