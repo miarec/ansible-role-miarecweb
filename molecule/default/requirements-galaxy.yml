@@ -1,0 +1,11 @@
+---
+- src: https://github.com/miarec/ansible-role-apache
+  name: apache
+
+- src: https://github.com/miarec/ansible-python
+  name: python
+  version: 671c478931bd61e60478fcdbfa0680f1f739a7a5
+
+- src: https://github.com/miarec/ansible-postgresql
+  name: postgresql
+  version: c292b174f21c1895fd438af4374e488011dbe7d3

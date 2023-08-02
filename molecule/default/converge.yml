@@ -1,0 +1,63 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Install prerequisites
+      block:
+        - name: Update apt cache
+          apt:
+            update_cache: true
+            cache_valid_time: 600
+          changed_when: false
+          when: ansible_os_family == "Debian"
+
+
+    - set_fact:
+        python_version: 3.8.16
+        postgresql_version: 12
+        miarecweb_version: 8.0.0.3911
+        miarecweb_secret: secret
+
+    - set_fact:
+        # postgresql_listen_addresses: "*"
+        postgresql_databases:
+          - name: "miarecdb"
+            owner: "miarec"
+        postgresql_database_extensions:
+          - db: "miarecdb"
+            extensions:
+              - hstore
+              - uuid-ossp
+              - pg_stat_statements
+        postgresql_users:
+          - name: "miarec"
+            pass: "password"
+            encrypted: yes       # denotes if the password is already encrypted.
+
+    - name: Install Dependencies
+      become: yes
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      with_items:
+        - libpq-dev
+        - python3-pip
+      when: ansible_os_family == "Debian"
+
+    - name: Install psycopg2 for ansible to be able to create postgresql users
+      become: yes
+      pip: name=psycopg2-binary
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - role: python
+    - role: postgresql
+    - role: apache
+
+
+    - role: miarecweb
+      tags:
+        - miarecweb
