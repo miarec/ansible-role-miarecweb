@@ -4,7 +4,7 @@
 
 - src: https://github.com/miarec/ansible-python
   name: python
-  version: 671c478931bd61e60478fcdbfa0680f1f739a7a5
+  version: bef4248a673bedffdf6d9d44afe0f3a4a1c833d8
 
 - src: https://github.com/miarec/ansible-postgresql
   name: postgresql
