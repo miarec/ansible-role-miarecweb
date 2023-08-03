@@ -49,12 +49,6 @@
 # --------------------------------------------------
 # Python virtual environment
 # --------------------------------------------------
-
-# - name: Verify pyenv directory presense
-#   stat:
-#     path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb.egg-link"
-#   register: miarecweb_pyenv_dir_exists
-
 - name: Verify pyenv directory presense
   stat:
     path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"
