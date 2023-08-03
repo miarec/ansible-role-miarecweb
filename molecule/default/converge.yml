@@ -55,6 +55,6 @@
     - role: postgresql
     - role: apache
 
-    - role: miarecweb
+    - role: ansible-role-miarecweb
       tags:
         - miarecweb

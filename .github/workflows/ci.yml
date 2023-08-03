@@ -27,7 +27,7 @@ jobs:
   test:
     name: molecule
     needs: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-2004
     strategy:
       matrix:
         distro:

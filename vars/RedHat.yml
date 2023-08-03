@@ -1,5 +1,4 @@
 ---
-
 apache_service: httpd
 apache_daemon: httpd
 apache_daemon_path: /usr/sbin/
