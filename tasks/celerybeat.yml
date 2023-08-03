@@ -18,7 +18,7 @@
     group: "{{ miarecweb_celery_group }}"
     comment: "Celery Task Manager"
     shell: /bin/bash
-    system: yes
+    system: true
   when: miarecweb_celery_user != 'root'
 
 
@@ -51,7 +51,7 @@
     mode: 0755
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
-  notify: 
+  notify:
     - start celerybeat
   when: ansible_service_mgr|default() != "systemd"
 
@@ -71,16 +71,16 @@
     mode: 0644
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
-  notify: 
+  notify:
     - reload celerybeat
     - reload systemd
   when: ansible_service_mgr == "systemd"
 
 
 - name: Enable celerybeat service
-  service: 
-    name: celerybeat 
-    enabled: yes
+  service:
+    name: celerybeat
+    enabled: true
 
 
 - name: Configure logrotate | celerybeat

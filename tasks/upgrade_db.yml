@@ -2,7 +2,7 @@
 - name: Check if database layout is up-to-date
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini current"
   register: _alembic_current_revision
-  changed_when: False
+  changed_when: false
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - set_fact:
@@ -11,7 +11,7 @@
     ##    2017-05-12 21:56:40,547 INFO  [alembic.runtime.migration][MainThread] Context impl PostgresqlImpl.
     ##    2017-05-12 21:56:40,547 INFO  [alembic.runtime.migration][MainThread] Will assume transactional DDL.
     ##    798983b70a19 (head)
-    ## 
+    ##
     ## Note: '(head)' is displayed only if the revision identifier for this databse matches the head revision (i.e. up-to-date).
     alembic_current_revision: "{{ _alembic_current_revision.stdout.split('\n')[-1] }}"
     when: '_alembic_current_revision is defined'
@@ -30,7 +30,7 @@
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Alembic upgrade results
-  debug: 
+  debug:
     msg: "{{ _alembic_upgrade_head.stderr_lines }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
@@ -45,4 +45,3 @@
     PGPORT: "{{ miarecweb_db_port }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
-

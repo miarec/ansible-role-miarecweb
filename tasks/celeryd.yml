@@ -18,7 +18,7 @@
     group: "{{ miarecweb_celery_group }}"
     comment: "Celery Task Manager"
     shell: /bin/bash
-    system: yes
+    system: true
   when: miarecweb_celery_user != 'root'
 
 # Celery needs write permissions to the directory in order to allow purge of files.
@@ -27,7 +27,7 @@
   user:
     name: "{{ miarecweb_celery_user }}"
     groups: "{{ miarec_bin_group }}"
-    append: True
+    append: true
   when: miarecweb_celery_user != 'root' and miarecweb_celery_group != miarec_bin_group
 
 
@@ -86,7 +86,7 @@
     mode: 0755
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
-  notify: 
+  notify:
     - start celeryd
   when: ansible_service_mgr|default() != "systemd"
 
@@ -107,16 +107,16 @@
     mode: 0644
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
-  notify: 
+  notify:
     - reload celeryd
     - reload systemd
   when: ansible_service_mgr == "systemd"
 
 
 - name: Enable celery service
-  service: 
-    name: celeryd 
-    enabled: yes
+  service:
+    name: celeryd
+    enabled: true
 
 
 - name: Configure logrotate | celery

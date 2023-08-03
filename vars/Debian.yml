@@ -1,6 +1,6 @@
 ---
 apache_service: apache2
-apache_daemon: apache2 
+apache_daemon: apache2
 apache_daemon_path: /usr/sbin/
 apache_user: www-data
 apache_group: www-data

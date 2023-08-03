@@ -34,10 +34,10 @@
         postgresql_users:
           - name: "miarec"
             pass: "password"
-            encrypted: yes       # denotes if the password is already encrypted.
+            encrypted: true       # denotes if the password is already encrypted.
 
     - name: Install Dependencies
-      become: yes
+      become: true
       apt:
         name: "{{ item }}"
         state: present
@@ -48,7 +48,7 @@
       when: ansible_os_family == "Debian"
 
     - name: Install psycopg2 for ansible to be able to create postgresql users
-      become: yes
+      become: true
       pip: name=psycopg2-binary
       when: ansible_os_family == "Debian"
 
