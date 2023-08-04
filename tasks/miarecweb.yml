@@ -54,10 +54,6 @@
     path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"
   register: miarecweb_pyenv_dir_exists
 
-- debug:
-    var: miarecweb_pyenv_dir_exists
-
-
 - name: Add an unfinished file, to allow cleanup on successful finalize | pyenv
   file:
     path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'

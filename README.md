@@ -1,5 +1,5 @@
 # ansible-miarecweb
-
+![CI](https://github.com/miarec/ansible-role-miarecweb/actions/workflows/ci.yml/badge.svg?event=push)
 Ansible role for installing of MiaRecWeb app.
 
 

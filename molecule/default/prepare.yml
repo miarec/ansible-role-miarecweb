@@ -1,0 +1,142 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+
+  pre_tasks:
+    # Setup PostgreSQL Database and User
+    - name: Install PostgreSQL - Debian
+      block:
+        - name: Debian - Update apt cache
+          apt:
+            update_cache: true
+            cache_valid_time: 600
+          changed_when: false
+          when: ansible_os_family == "Debian"
+
+        - name: Debian - Install PostgreSQL
+          apt:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - postgresql
+            - postgresql-contrib
+
+        - name: Debian - Make sure PostgreSQL is stated
+          service:
+            name: postgresql
+            state: started
+          become: true
+
+      when: ansible_os_family == "Debian"
+
+    - name: Install PostgreSQL - CentOS7
+      block:
+        - name: Centos7 - Install the PostgreSQL Repository
+          yum:
+            name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+            state: present
+
+        - name: CentOS7 - Install PostgreSQL
+          yum:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - postgresql12-server
+            - postgresql12-contrib
+          register: _postrgesql_yum_install
+
+        - name: Inititialize the database
+          shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
+          when: _postrgesql_yum_install.changed
+
+        - name: modify pg_hba.conf
+          copy:
+            content: |
+              # set permissions to access databases
+              local all all peer
+              host miarecdb miarec 127.0.0.1/32 md5
+            dest: /var/lib/pgsql/12/data/pg_hba.conf
+
+        - name: Make sure postgresql is stated
+          service:
+            name: postgresql-12
+            state: started
+          become: true
+
+      when: ansible_distribution == "CentOS"
+
+    - name: Install psycopg2 for ansible to be able to create postgresql users
+      become: true
+      pip:
+        name: psycopg2-binary
+
+    - name: PostgreSQL User
+      postgresql_user:
+        name: "miarec"
+        password: "password"
+        state: present
+        port: 5432
+      become: true
+      become_user: "postgres"
+
+    - name: PostgreSQL Database
+      postgresql_db:
+        name: "miarecdb"
+        owner: "miarec"
+        state: present
+      become: true
+      become_user: "postgres"
+
+    - name: Update user permissions for PostgreSQL User
+      postgresql_user:
+        name: "miarec"
+        db: "miarecdb"
+      become: true
+      become_user: "postgres"
+
+
+    - name: PostgreSQL Database Extensions
+      postgresql_ext:
+        name: "{{ item }}"
+        db: "miarecdb"
+        state: present
+      become: true
+      become_user: "postgres"
+      with_items:
+        - hstore
+        - uuid-ossp
+        - pg_stat_statements
+
+
+    # - name: Install Apache
+    #   become: true
+    #   apt:
+    #     name: "{{ item }}"
+    #     state: present
+    #     update_cache: true
+    #   with_items:
+    #     - apache2
+    #   when: ansible_os_family == "Debian"
+
+    - set_fact:
+        python_version: 3.8.16
+        # postgresql_version: 12
+        # miarecweb_version: 8.0.0.3911
+        # miarecweb_secret: secret
+
+    - name: Install Dependencies - Debian
+      become: true
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      with_items:
+        - libpq-dev
+        - python3-pip
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - role: python
+    - role: apache
+
