@@ -13,6 +13,7 @@
     - g++
     - make
     - openssl
+    - libpq-dev
     - libssl-dev
     - libffi-dev
     - unixodbc-dev

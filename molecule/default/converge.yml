@@ -14,9 +14,26 @@
           when: ansible_os_family == "Debian"
 
     - set_fact:
-        python_version: 3.8.16
         miarecweb_version: 8.0.0.3911
         miarecweb_secret: secret
+
+    - name: Get full python3.8 version
+      command: python3.8 --version
+      changed_when: false
+      register: _python_version
+
+
+    - name: Define Install location of python3.8
+      set_fact:
+        python_install_dir: /usr
+
+    - name: Define python_version
+      set_fact:
+        python_version: "{{ _python_version.stdout | split(' ') | last }}"
+
+    - name: Installed Python version
+      debug:
+        var: python_version
 
   roles:
 
