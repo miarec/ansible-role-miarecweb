@@ -154,7 +154,7 @@
 
       when: ansible_distribution == "CentOS"
 
-# Install python from package
+    # Install python from package
     - name: Debian - Install Python 3.8 from package
       block:
         - name: Debian - Install python3.8 dependencies
@@ -209,4 +209,3 @@
             state: link
 
       when: ansible_distribution == "CentOS"
-
