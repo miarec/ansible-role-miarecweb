@@ -19,6 +19,9 @@ provisioner:
   name: ansible
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+  env:
+    MIARECWEB_VERSION: ${MOLECULE_MIARECWEB_VERSION:-"8.0.0.3911"}
+    MIARECWEB_SECRET: ${MOLECULE_MIARECWEB_SECRET:-"secret"}
 verifier:
   name: testinfra
   options:

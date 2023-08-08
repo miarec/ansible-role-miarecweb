@@ -14,8 +14,8 @@
           when: ansible_os_family == "Debian"
 
     - set_fact:
-        miarecweb_version: 8.0.0.3911
-        miarecweb_secret: secret
+        miarecweb_version: "{{ lookup('env', 'MIARECWEB_VERSION') }}"
+        miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
 
     - name: Get full python3.8 version
       command: python3.8 --version
@@ -31,13 +31,7 @@
       set_fact:
         python_version: "{{ _python_version.stdout | split(' ') | last }}"
 
-    - name: Installed Python version
-      debug:
-        var: python_version
-
   roles:
-
-    # - role: miarecweb
     - role: ansible-role-miarecweb
       tags:
         - miarecweb
