@@ -1,8 +1,6 @@
 ---
 dependency:
   name: galaxy
-  # name: shell
-  # command: ansible-galaxy install -r molecule/default/requirements-galaxy.yml --force
 driver:
   name: docker
 platforms:
