@@ -3,7 +3,7 @@
 miarecweb_version: 5.2.0.2119
 
 # The python version to install miarecweb. Caution! The python should be installed in advance
-# python_version: 3.6.3
+python_version: 3.6.3
 # Location of the installed python files
 python_install_dir: /usr/local
 
