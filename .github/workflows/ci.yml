@@ -58,4 +58,4 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
-          MIARECWEB_VERSION: ${{ matrix.version }}
+          MOLECULE_MIARECWEB_VERSION: ${{ matrix.version }}
