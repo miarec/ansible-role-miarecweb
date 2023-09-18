@@ -4,11 +4,13 @@ import testinfra.utils.ansible_runner
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
     os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
 
+miarecweb_version = os.environ.get('MIARECWEB_VERSION')
+
 
 def test_directories(host):
 
     dirs = [
-        "/opt/miarecweb/releases/8.0.0.3911",
+        "/opt/miarecweb/releases/{}".format(miarecweb_version),
         "/var/log/miarecweb",
         "/var/log/miarecweb/celery"
     ]
@@ -19,7 +21,7 @@ def test_directories(host):
 
 def test_files(host):
     files = [
-        "/opt/miarecweb/releases/8.0.0.3911/production.ini",
+        "/opt/miarecweb/releases/{}/production.ini".format(miarecweb_version),
         "/etc/systemd/system/celerybeat.service",
         "/etc/systemd/system/celeryd.service",
         "/var/log/miarecweb/celery/beat.log",
