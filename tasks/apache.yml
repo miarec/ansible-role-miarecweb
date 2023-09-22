@@ -1,10 +1,8 @@
-
 ---
-
 - name: install dependencies | Debian
   package:
     pkg: "{{ item }}"
-    update_cache: yes
+    update_cache: true
     cache_valid_time: 86400
     state: present
   with_items:
@@ -25,13 +23,13 @@
 - name: Get installed version of Apache.
   shell: "{{ apache_daemon_path }}{{ apache_daemon }} -v"
   changed_when: false
-  check_mode: no
+  check_mode: false
   register: _apache_version
 
 ## This will create full version, like 2.4.6
 - set_fact:
     apache_version: "{{ _apache_version.stdout.split()[2].split('/')[1] }}"
- 
+
 
 ## Translate full apache_version (2.4.5) to the MAJOR.MINOR value, like "2.4"
 - set_fact:
@@ -60,13 +58,13 @@
   file:
     path: "{{ deploy_helper.new_release_path }}/pyenv"
     mode: u=rwX,g=rX,o=rX
-    recurse: yes
+    recurse: true
 
-    
+
 - name: Get mod_wsgi module location
   shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
   changed_when: false
-  check_mode: no
+  check_mode: false
   register: _mod_wsgi_file_path
 
 
@@ -77,7 +75,7 @@
   copy:
     src: "{{ deploy_helper.new_release_path }}/app/miarec.wsgi.sample"
     dest: "{{ deploy_helper.new_release_path }}/miarec.wsgi"
-    remote_src: True
+    remote_src: true
     mode: 0644
 
 # --------------------------------------------------
@@ -125,10 +123,10 @@
   user:
     name: "{{ apache_user }}"
     groups: "{{ miarec_bin_group }}"
-    append: True
+    append: true
   when: miarec_bin_group != 'root'
 
-  
+
 # --------------------------------------------------
 # Apache enable SSL
 # --------------------------------------------------
@@ -139,9 +137,9 @@
   with_items:
     - mod_ssl
   notify: reload apache
-  when: ansible_os_family == "RedHat"  
-  
-      
+  when: ansible_os_family == "RedHat"
+
+
 - name: enable Apache SSL module | Debian
   command: >
     a2enmod ssl
@@ -156,8 +154,8 @@
     creates: "{{ apache_conf_path }}/sites-enabled/default-ssl.conf"
   notify: reload apache
   when: ansible_os_family == "Debian"
-  
-  
+
+
 # --------------------------------------------------
 # Apache conf.d/miarec-ssl.conf
 # --------------------------------------------------

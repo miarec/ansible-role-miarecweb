@@ -3,7 +3,7 @@
 miarecweb_version: 5.2.0.2119
 
 # The python version to install miarecweb. Caution! The python should be installed in advance
-python_version: 3.5.3
+python_version: 3.6.3
 # Location of the installed python files
 python_install_dir: /usr/local
 
@@ -26,7 +26,7 @@ miarecweb_db_password: password
 
 miarecweb_db_pool_size: 20
 miarecweb_db_pool_recycle: -1
-miarecweb_db_pool_use_lifo: True
+miarecweb_db_pool_use_lifo: true
 
 # -----------------------------
 # Redis settings
@@ -36,7 +36,7 @@ miarecweb_redis_port: 6379
 
 miarecweb_redis_socket_timeout: 60
 miarecweb_redis_socket_connect_timeout: 60
-miarecweb_redis_socket_keepalive: True
+miarecweb_redis_socket_keepalive: true
 miarecweb_redis_health_check_interval: 300
 miarecweb_redis_pool_recycle: -1
 
@@ -44,18 +44,18 @@ miarecweb_redis_pool_recycle: -1
 # A secret key used for encrypting secrets in the database.
 # If the secret changes or is unknown, no encrypted fields in the database will be accessible.
 # It must be unique for each deployment, but stay the same between software updates
-miarecweb_secret: 
+miarecweb_secret:
 
 # -----------------------------
 # Optional components
 # -----------------------------
-miarecweb_upgrade_db: yes
-miarecweb_upgrade_db_once: True
-miarecweb_install_apache: yes
-miarecweb_install_celeryd: yes
-miarecweb_install_celerybeat: yes
+miarecweb_upgrade_db: true
+miarecweb_upgrade_db_once: true
+miarecweb_install_apache: true
+miarecweb_install_celeryd: true
+miarecweb_install_celerybeat: true
 
-miarecweb_force_https: yes
+miarecweb_force_https: true
 
 
 # -----------------------------
@@ -117,12 +117,12 @@ miarecweb_download_dir: /tmp
 # whether or not to delete the downloaded source code. By setting it
 # to false and using a custom var for `miarecweb_download_dir` a kind of
 # local caching can be achieved.
-miarecweb_cleanup_downloads: yes
+miarecweb_cleanup_downloads: true
 
 
 # If true, the miarecweb files for the version will be downloaded and
 # installed again even if it's found on the system.
-# miarecweb_force_install: no  
+# miarecweb_force_install: no
 
 # Custom settings for "production.ini" file
 # Example in YAML file:

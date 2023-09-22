@@ -1,0 +1,56 @@
+---
+# Install python from package
+- name: Debian - Install Python3.8 from package
+  block:
+    - name: Debian - Install python3.8 dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      with_items:
+        - gpg-agent
+
+    - name: Debian - Install deadsnakes repository
+      apt_repository:
+        validate_certs: false
+        repo: ppa:deadsnakes/ppa
+        state: present
+      become: true
+
+    - name: Debian - Install Python3.8 packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      with_items:
+        - python3.8
+        - python3.8-dev
+        - python3.8-venv
+
+  when: ansible_os_family == "Debian"
+
+- name: CentOS 7 - Install Python3.8 from package - RPM
+  block:
+
+    - name: CentOS 7 - Install Python3.8 dependencies
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - centos-release-scl-rh
+
+    - name: CentOS 7 - Install Python3.8 packages
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - rh-python38-python
+        - rh-python38-python-devel
+
+    - name: Create Symbolic link
+      file:
+        src: /opt/rh/rh-python38/root/usr/bin/python3.8
+        dest: /usr/bin/python3.8
+        state: link
+
+  when: ansible_distribution == "CentOS"

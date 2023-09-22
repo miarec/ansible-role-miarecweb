@@ -1,0 +1,8 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  tasks:
+    - include_tasks: postgresql.yml
+    - include_tasks: apache.yml
+    - include_tasks: python.yml
