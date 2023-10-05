@@ -15,7 +15,8 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
 
       - name: Run yamllint
         uses: karancode/yamllint-github-action@master
@@ -34,13 +35,15 @@ jobs:
           - ubuntu2004
           - ubuntu2204
           - centos7
+        version:
+          - 8.0.0.4020
 
     steps:
       - name: Check out the Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python3
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
@@ -56,3 +59,4 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
+          MOLECULE_MIARECWEB_VERSION: ${{ matrix.version }}
