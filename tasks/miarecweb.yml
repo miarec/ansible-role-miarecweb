@@ -207,7 +207,7 @@
       replace: 'rediss://'
     - regexp: '%\(REDIS_PORT\)s/1$'
       replace: '%(REDIS_PORT)s/1?ssl_cert_reqs=none'
-  when: redis_make_tls
+  when: redis_make_tls|default(false)|bool
   notify:
     - reload apache
     - reload celeryd
