@@ -197,6 +197,20 @@
     - reload celeryd
     - reload celerybeat
 
+- name: Configure alternative sox_path in production.ini file
+  lineinfile:
+    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: '^/usr/local/bin/sox'
+      line: '/usr/bin/sox'
+  when: not sox_install_from_source|default(true)|bool
+  notify:
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
+
 # --------------------------------------------------
 # Custom configuration settings in INI file
 # --------------------------------------------------
