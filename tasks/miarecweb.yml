@@ -203,8 +203,8 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - regexp: '^/usr/local/bin/sox'
-      line: '/usr/bin/sox'
+    - regexp: '^miarec.sox_path = /usr/local/bin/sox'
+      line: 'miarec.sox_path = /usr/bin/sox'
   when: not sox_install_from_source|default(true)|bool
   notify:
     - reload apache
