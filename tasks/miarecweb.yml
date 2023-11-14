@@ -175,7 +175,7 @@
       line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
     - regexp: '^deform_mako.module_directory = '
       line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
-    - regexp: '^miarec.sox_path = /usr/local/bin/sox'
+    - regexp: '^miarec.sox_path = '
       line: 'miarec.sox_path = {{ sox_path }}'
   notify:
     - reload apache
