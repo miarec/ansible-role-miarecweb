@@ -15,6 +15,9 @@ postgresql_version: 9.3
 postgresql_bin_directory: /usr/bin
 
 
+# Sox variables
+sox_path: /usr/local/bin/sox
+
 # ----------------------------
 # Database settings
 # ----------------------------
