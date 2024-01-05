@@ -45,6 +45,7 @@ eg:
 The above playbook will install miarecweb version 5.2.0.2119.
 
 
-
+# CI/CD
+ - [CI/CD docs](docs/ci.md)
 
 
