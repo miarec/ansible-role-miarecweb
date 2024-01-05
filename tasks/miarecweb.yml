@@ -199,6 +199,23 @@
     - reload celeryd
     - reload celerybeat
 
+- name: Configure Redis TLS in production.ini file
+  replace:
+    path: "{{ deploy_helper.new_release_path }}/production.ini"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - regexp: 'redis://'
+      replace: 'rediss://'
+    - regexp: '%\(REDIS_PORT\)s/1$'
+      replace: '%(REDIS_PORT)s/1?ssl_cert_reqs=none'
+  when: redis_make_tls|default(false)|bool
+  notify:
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
+
+
 # --------------------------------------------------
 # Custom configuration settings in INI file
 # --------------------------------------------------

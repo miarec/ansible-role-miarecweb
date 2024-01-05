@@ -17,6 +17,7 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
+
       - name: Run yamllint
         uses: karancode/yamllint-github-action@master
         with:
@@ -35,7 +36,7 @@ jobs:
           - ubuntu2204
           - centos7
         version:
-          - 8.0.0.3971
+          - ${{ vars.MIARECWEB_VERSION }}
 
     steps:
       - name: Check out the Repository

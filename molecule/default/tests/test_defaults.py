@@ -10,6 +10,7 @@ miarecweb_version = os.environ.get('MIARECWEB_VERSION')
 def test_directories(host):
 
     dirs = [
+
         "/opt/miarecweb/releases/{}".format(miarecweb_version),
         "/var/log/miarecweb",
         "/var/log/miarecweb/celery"
