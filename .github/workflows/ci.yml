@@ -36,7 +36,7 @@ jobs:
           - ubuntu2204
           - centos7
         version:
-          - ${{ secrets.MIARECWEB_VERSION }}
+          - ${{ vars.MIARECWEB_VERSION }}
 
     steps:
       - name: Check out the Repository
