@@ -2,13 +2,13 @@
 # ---------------------------------------------
 # Prepare for run
 # ---------------------------------------------
-- include: preflight.yml
+- import_tasks: preflight.yml
 
 
 # ---------------------------------------------
 # Install dependencies
 # ---------------------------------------------
-- include: dependencies.yml
+- import_tasks: dependencies.yml
   become: true
 
 # ---------------------------------------------
@@ -51,31 +51,31 @@
 # --------------------------------------------------
 # Install/upgrade 'miarecweb' app files
 # --------------------------------------------------
-- include: miarecweb.yml
+- import_tasks: miarecweb.yml
   become: true
 
 # --------------------------------------------------
 # Upgrade database layout
 # --------------------------------------------------
-- include: upgrade_db.yml
+- import_tasks: upgrade_db.yml
   when: miarecweb_upgrade_db|bool
   become: true
 
 # --------------------------------------------------
 # Configure apache web server
 # --------------------------------------------------
-- include: apache.yml
+- import_tasks: apache.yml
   when: miarecweb_install_apache|bool
   become: true
 
 # --------------------------------------------------
 # Configure celery + celerybeat
 # --------------------------------------------------
-- include: celeryd.yml
+- import_tasks: celeryd.yml
   when: miarecweb_install_celeryd|bool
   become: true
 
-- include: celerybeat.yml
+- import_tasks: celerybeat.yml
   when: miarecweb_install_celerybeat|bool
   become: true
 
