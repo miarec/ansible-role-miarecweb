@@ -60,41 +60,43 @@
     state: touch
   when: miarecweb_pyenv_dir_exists.stat.exists == false
 
+
 - name: Create python virtual environment
-  command:
-    cmd: "{{ python_install_dir }}/bin/python{{ python_version_base }} -m venv {{ deploy_helper.new_release_path }}/pyenv"
+  shell:
+    cmd: "umask 0022 && {{ python_install_dir }}/bin/python{{ python_version_base }} -m venv {{ deploy_helper.new_release_path }}/pyenv"
     creates: "{{ deploy_helper.new_release_path }}/pyenv"
   when: miarecweb_pyenv_dir_exists.stat.exists == false
 
+
 - name: Upgrade PIP
-  command:
+  shell:
+    cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/python -m pip install --upgrade pip"
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/python -m pip install --upgrade pip"
   when: miarecweb_pyenv_dir_exists.stat.exists == false
 
 
 - name: Upgrade setuptools
-  command:
+  shell:
+    cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/pip install --upgrade setuptools"
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install --upgrade setuptools"
   when: miarecweb_pyenv_dir_exists.stat.exists == false
 
 
-- name: Install MiaRec into python virtual environment
-  command:
+- name: Install dependencies (requirements.txt)
+  shell:
+    cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/pip install -r requirements.txt"
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install -e ."
   environment:
     # We need to add 'pg_config' to PATH. Otherwise psycopg2 build fails
     PATH: "{{ postgresql_bin_directory }}:{{ ansible_env.PATH }}"
   when: miarecweb_pyenv_dir_exists.stat.exists == false
 
 
-- name: Make pyenv directory readable
-  file:
-    path: "{{ deploy_helper.new_release_path }}/pyenv"
-    mode: u=rwX,g=rX,o=rX
-    recurse: true
+- name: Install MiaRecWeb
+  shell:
+    cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/pip install -e ."
+    chdir: "{{ deploy_helper.new_release_path }}/app"
+  when: miarecweb_pyenv_dir_exists.stat.exists == false
 
 
 # --------------------------------------------------

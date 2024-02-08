@@ -48,17 +48,12 @@
 
 
 - name: Install mod_wsgi python package
-  command:
+  pip:
+    name: mod_wdgi
+    version: "{{ mod_wsgi_version }}"
+    executable: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip"
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    cmd: '{{ deploy_helper.new_release_path }}/pyenv/bin/pip install "mod_wsgi=={{ mod_wsgi_version }}"'
-    creates: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express"
-
-
-- name: Make pyenv directory readable (after mod_wsgi install)
-  file:
-    path: "{{ deploy_helper.new_release_path }}/pyenv"
-    mode: u=rwX,g=rX,o=rX
-    recurse: true
+    umask: "0022"
 
 
 - name: Get mod_wsgi module location
