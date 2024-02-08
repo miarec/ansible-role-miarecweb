@@ -50,7 +50,7 @@
 - name: Install mod_wsgi python package
   command:
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    cmd: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip install mod_wsgi"
+    cmd: '{{ deploy_helper.new_release_path }}/pyenv/bin/pip install "mod_wsgi=={{ mod_wsgi_version }}"'
     creates: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express"
 
 

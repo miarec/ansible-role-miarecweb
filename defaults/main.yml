@@ -18,6 +18,9 @@ postgresql_bin_directory: /usr/bin
 # Sox variables
 sox_path: /usr/local/bin/sox
 
+# A version of mod_wsgi module 
+mod_wsgi_version: 5.0.0
+
 # ----------------------------
 # Database settings
 # ----------------------------
