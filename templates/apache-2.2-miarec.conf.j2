@@ -12,7 +12,10 @@ WSGISocketPrefix run/wsgi
 WSGIApplicationGroup %{GLOBAL}
 WSGIPassAuthorization On
 
-WSGIDaemonProcess miarec user={{ apache_user }} group={{ apache_group }} python-path={{ wsgi_python_path }}
+WSGIPythonHome {{ wsgi_python_home }}
+WSGIPythonPath {{ wsgi_python_path }}
+
+WSGIDaemonProcess miarec user={{ apache_user }} group={{ apache_group }}
 WSGIProcessGroup miarec
 
 Alias /favicon.ico {{ miarecweb_root_dir }}/app/miarecweb/static/favicon.ico

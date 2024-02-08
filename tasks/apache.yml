@@ -87,8 +87,9 @@
     dest: "{{ apache_conf_path }}/miarec.conf"
     mode: 0644
   vars:
-    wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
-    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    wsgi_python_home: "{{ deploy_helper.new_release_path }}/pyenv"
+    wsgi_python_path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
+    miarecweb_root_dir: "{{ deploy_helper.new_release_path }}"
     mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
   notify: reload apache
   when: ansible_os_family == "RedHat"
@@ -100,8 +101,9 @@
     dest: "{{ apache_conf_path }}/sites-available/miarec.conf"
     mode: 0644
   vars:
-    wsgi_python_path: "{{ deploy_helper.current_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
-    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    wsgi_python_home: "{{ deploy_helper.new_release_path }}/pyenv"
+    wsgi_python_path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
+    miarecweb_root_dir: "{{ deploy_helper.new_release_path }}"
     mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
   notify: reload apache
   when: ansible_os_family == "Debian"
