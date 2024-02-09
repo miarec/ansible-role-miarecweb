@@ -1,6 +1,6 @@
 ---
 - name: Check if database layout is up-to-date
-  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini current"
+  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini current"
   register: _alembic_current_revision
   changed_when: false
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
@@ -14,7 +14,7 @@
     ##
     ## Note: '(head)' is displayed only if the revision identifier for this databse matches the head revision (i.e. up-to-date).
     alembic_current_revision: "{{ _alembic_current_revision.stdout.split('\n')[-1] }}"
-    when: '_alembic_current_revision is defined'
+  when: '_alembic_current_revision is defined'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Alembic current revision
@@ -23,8 +23,8 @@
   when: '_alembic_current_revision is defined'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
-- name: Upgrade database layout
-  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade heads"
+- name: Upgrade database layout   # noqa: no-changed-when
+  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade heads"
   register: _alembic_upgrade_head
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
@@ -35,7 +35,7 @@
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
-- name: Update database statistics (ANALYZE)
+- name: Update database statistics (ANALYZE)   # noqa: no-changed-when
   command: 'psql -c "ANALYZE"'
   environment:
     PGUSER: "{{ miarecweb_db_user }}"

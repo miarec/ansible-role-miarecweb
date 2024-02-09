@@ -41,6 +41,8 @@
   when: miarecweb_install_celerybeat|bool
   become: true
 
-- name: reload systemd
-  become: true
+
+- name: reload systemd    # noqa: command-instead-of-module
   command: systemctl daemon-reload
+  changed_when: true
+  become: true

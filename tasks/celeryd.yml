@@ -37,6 +37,7 @@
     owner: '{{ miarecweb_celery_user }}'
     group: '{{ miarecweb_celery_group }}'
     state: directory
+    mode: u=rwX,g=rX,o=rX
 
 
 - name: Create PID directory for celery workers
@@ -45,6 +46,7 @@
     owner: '{{ miarecweb_celery_user }}'
     group: '{{ miarecweb_celery_group }}'
     state: directory
+    mode: u=rwX,g=rX,o=rX
 
 
 - name: Create log directory for celery jobs
@@ -53,6 +55,7 @@
     owner: '{{ miarecweb_celery_user }}'
     group: '{{ miarecweb_celery_group }}'
     state: directory
+    mode: u=rwX,g=rX,o=rX
 
 
 - name: Configure celery settings
@@ -61,7 +64,7 @@
     dest: "/etc/default/celeryd"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify: reload celeryd
@@ -71,7 +74,7 @@
   template:
     src: etc_tmpfiles.d_celeryd.conf.j2
     dest: /etc/tmpfiles.d/celeryd.conf
-    mode: 0644
+    mode: '0644'
   when:
     - ansible_service_mgr|default() == 'systemd'
     - miarecweb_celery_pid_dir.startswith('/var/run') or miarecweb_celery_pid_dir.startswith('/run')
@@ -104,7 +107,7 @@
     dest: "/etc/systemd/system/celeryd.service"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify:
@@ -123,3 +126,4 @@
   template:
     src: "etc_logrotate.d_celery.j2"
     dest: "/etc/logrotate.d/celery"
+    mode: '0644'

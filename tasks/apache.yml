@@ -21,7 +21,7 @@
 # Figure out what version of Apache is installed.
 # ---------------------------------------------
 - name: Get installed version of Apache.
-  shell: "{{ apache_daemon_path }}{{ apache_daemon }} -v"
+  command: "{{ apache_daemon_path }}{{ apache_daemon }} -v"
   changed_when: false
   check_mode: false
   register: _apache_version
@@ -45,6 +45,7 @@
     owner: '{{ apache_user }}'
     group: '{{ apache_group }}'
     state: directory
+    mode: u=rwX,g=rX,o=rX
 
 
 - name: Install mod_wsgi python package
@@ -57,7 +58,7 @@
 
 
 - name: Get mod_wsgi module location
-  shell: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
+  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
   changed_when: false
   check_mode: false
   register: _mod_wsgi_file_path
@@ -71,7 +72,7 @@
     src: "{{ deploy_helper.new_release_path }}/app/miarec.wsgi.sample"
     dest: "{{ deploy_helper.new_release_path }}/miarec.wsgi"
     remote_src: true
-    mode: 0644
+    mode: '0644'
 
 # --------------------------------------------------
 # Apache conf.d/miarec.conf
@@ -80,7 +81,7 @@
   template:
     src: "apache-{{ apache_version_base }}-miarec.conf.j2"
     dest: "{{ apache_conf_path }}/miarec.conf"
-    mode: 0644
+    mode: '0644'
   vars:
     wsgi_python_home: "{{ deploy_helper.new_release_path }}/pyenv"
     wsgi_python_path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
@@ -94,7 +95,7 @@
   template:
     src: "apache-{{ apache_version_base }}-miarec.conf.j2"
     dest: "{{ apache_conf_path }}/sites-available/miarec.conf"
-    mode: 0644
+    mode: '0644'
   vars:
     wsgi_python_home: "{{ deploy_helper.new_release_path }}/pyenv"
     wsgi_python_path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
@@ -160,6 +161,7 @@
   template:
     src: "apache-miarec-ssl.conf.j2"
     dest: "{{ apache_conf_path }}/miarec-ssl.conf"
+    mode: '0644'
   notify: reload apache
   when: miarecweb_force_https|bool and ansible_os_family == "RedHat"
 
@@ -168,7 +170,7 @@
   template:
     src: "apache-miarec-ssl.conf.j2"
     dest: "{{ apache_conf_path }}/sites-available/miarec-ssl.conf"
-    mode: 0644
+    mode: '0644'
   notify: reload apache
   when: miarecweb_force_https|bool and ansible_os_family == "Debian"
 

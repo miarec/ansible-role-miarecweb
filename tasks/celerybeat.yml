@@ -28,6 +28,7 @@
     owner: '{{ miarecweb_celery_user }}'
     group: '{{ miarecweb_celery_group }}'
     state: directory
+    mode: u=rwX,g=rX,o=rX
 
 
 - name: Configure celerybeat settings
@@ -36,7 +37,7 @@
     dest: "/etc/default/celerybeat"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify: reload celerybeat
@@ -48,7 +49,7 @@
     dest: "/etc/init.d/celerybeat"
     owner: root
     group: root
-    mode: 0755
+    mode: '0755'
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify:
@@ -68,7 +69,7 @@
     dest: "/etc/systemd/system/celerybeat.service"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify:
@@ -87,3 +88,4 @@
   template:
     src: "etc_logrotate.d_celery.j2"
     dest: "/etc/logrotate.d/celery"
+    mode: '0644'

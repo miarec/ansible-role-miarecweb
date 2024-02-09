@@ -10,3 +10,5 @@ skip_list:
   - yaml[truthy]
   - jinja[spacing]
   - name[template]
+  - name[casing]
+  - name[missing]
