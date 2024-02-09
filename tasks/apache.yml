@@ -49,7 +49,7 @@
 
 - name: Install mod_wsgi python package
   pip:
-    name: mod_wdgi
+    name: mod_wsgi
     version: "{{ mod_wsgi_version }}"
     executable: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip"
     chdir: "{{ deploy_helper.new_release_path }}/app"
