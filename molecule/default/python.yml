@@ -1,56 +1,185 @@
 ---
 # Install python from package
-- name: Debian - Install Python3.8 from package
-  block:
-    - name: Debian - Install python3.8 dependencies
-      apt:
-        name: "{{ item }}"
-        state: present
-        update_cache: true
-      with_items:
-        - gpg-agent
+# - name: Debian - Install Python3 from package
+#   block:
+#     - name: Debian - Install python3.8 dependencies
+#       apt:
+#         name: "{{ item }}"
+#         state: present
+#         update_cache: true
+#       with_items:
+#         - gpg-agent
 
-    - name: Debian - Install deadsnakes repository
-      apt_repository:
-        validate_certs: false
-        repo: ppa:deadsnakes/ppa
-        state: present
-      become: true
+#     - name: Debian - Install deadsnakes repository
+#       apt_repository:
+#         validate_certs: false
+#         repo: ppa:deadsnakes/ppa
+#         state: present
+#       become: true
 
-    - name: Debian - Install Python3.8 packages
-      apt:
-        name: "{{ item }}"
-        state: present
-        update_cache: true
-      with_items:
-        - python3.8
-        - python3.8-dev
-        - python3.8-venv
+#     - name: Debian - Install Python3.8 packages
+#       apt:
+#         name: "{{ item }}"
+#         state: present
+#         update_cache: true
+#       with_items:
+#         - python3.8
+#         - python3.8-dev
+#         - python3.8-venv
 
+
+#   when: ansible_os_family == "Debian"
+
+# - name: CentOS 7 - Install Python3.8 from package - RPM
+#   block:
+
+#     - name: CentOS 7 - Install Python3.8 dependencies
+#       yum:
+#         name: "{{ item }}"
+#         state: present
+#       with_items:
+#         - centos-release-scl-rh
+
+#     - name: CentOS 7 - Install Python3.8 packages
+#       yum:
+#         name: "{{ item }}"
+#         state: present
+#       with_items:
+#         - rh-python38-python
+#         - rh-python38-python-devel
+
+#     - name: Create Symbolic link
+#       file:
+#         src: /opt/rh/rh-python38/root/usr/bin/python3.8
+#         dest: /usr/bin/python3.8
+#         state: link
+
+#   when: ansible_os_family == "RedHat"
+
+
+
+
+
+
+
+
+
+# Install from source
+
+- set_fact:
+    python_dependencies:
+      - gcc
+      - make
+      - findutils
+      - openssl-devel
+      - sqlite-devel
+      - bzip2-devel
+      - zlib-devel
+      - libffi-devel
+  when: ansible_os_family == "RedHat"
+
+- set_fact:
+    python_dependencies:
+    - gcc
+    - make
+    - libssl-dev
+    - libsqlite3-dev
+    - libbz2-dev
+    - libffi-dev
+    - python3-pip
   when: ansible_os_family == "Debian"
 
-- name: CentOS 7 - Install Python3.8 from package - RPM
+- name: Install build dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ python_dependencies }}"
+
+
+- name: For RedHat 7, install additional build dependencies
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version == '7'
+    - python_version is version('3.8', '>=')
   block:
+    # SCL are required for dev-toolset-11 package
+    # For RedHat Enterprise, you may need to manually add it with:
+    #    yum-config-manager --enable rhel-server-rhscl-11-rpms
+    - name: Install Software Collections (SCL) | CentOS 7
+      package:
+        name: centos-release-scl
+        state: present
+      when: ansible_distribution == "CentOS"
 
-    - name: CentOS 7 - Install Python3.8 dependencies
-      yum:
+    # EPEL is required for openssl11 package
+    - name: Install EPEL | CentOS 7
+      package:
+        name: epel-release
+        state: present
+      when: ansible_distribution == "CentOS"
+
+    - name: Install build dependencies | RedHat 7
+      package:
         name: "{{ item }}"
         state: present
+      become: true
       with_items:
-        - centos-release-scl-rh
+        - devtoolset-11
+        - openssl11-devel
 
-    - name: CentOS 7 - Install Python3.8 packages
-      yum:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - rh-python38-python
-        - rh-python38-python-devel
+    - name: Get OpenSSL 1.1.1 CFLAGS | RedHat 7
+      shell: pkg-config --cflags openssl11
+      register: openssl11_cflags
+      changed_when: false
 
-    - name: Create Symbolic link
-      file:
-        src: /opt/rh/rh-python38/root/usr/bin/python3.8
-        dest: /usr/bin/python3.8
-        state: link
+    - name: Get OpenSSL 1.1.1 LIBS | RedHat 7
+      shell: pkg-config --libs openssl11
+      register: openssl11_libs
+      changed_when: false
 
-  when: ansible_distribution == "CentOS"
+    - name: Prepare python compile flags | RedHat 7
+      set_fact:
+        python_cppflags: "{{ openssl11_cflags.stdout }}"
+        python_ldflags: "{{ openssl11_libs.stdout }}"
+        python_configure_command: "scl enable devtoolset-11 -- ./configure"
+        python_make_command: "scl enable devtoolset-11 -- make"
+
+- name: Download python source code
+  get_url:
+    url: "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz"
+    dest: "/tmp/Python-{{ python_version }}.tgz"
+
+- name: Untar the source package
+  unarchive:
+    src: "/tmp/Python-{{ python_version }}.tgz"
+    dest: "/tmp"
+    creates: "/tmp/Python-{{ python_version }}/configure"
+    copy: false
+
+
+- name: Run configure
+  shell: "{{ python_configure_command | default('./configure') }} --enable-optimizations --enable-shared --prefix=/usr/local"
+  # shell: "./configure --enable-optimizations --enable-shared --prefix=/usr/local"
+  args:
+    chdir: "/tmp/Python-{{ python_version }}"
+    creates: "/tmp/Python-{{ python_version }}/Makefile"
+  environment:
+    CPPFLAGS: "{{ python_cppflags | default('') }}"
+    LDFLAGS: "{{ python_ldflags | default('') }} -Wl,-rpath=/usr/local/lib"
+
+- name: Run make
+  shell: "{{ python_make_command | default('make') }}  -j{{ ansible_processor_cores }}"
+  # shell: "make -j{{ ansible_processor_cores }}"
+  # shell: "make"
+  args:
+    chdir: "/tmp/Python-{{ python_version }}"
+    creates: "/tmp/Python-{{ python_version }}/python"
+
+
+- name: Run make altinstall
+  command: make altinstall
+  args:
+    chdir: "/tmp/Python-{{ python_version }}"
+    # creates: "/usr/local/bin/python311"     # this is incorrect, but proabbly not needed
+  # when: not python_force_install|bool
+  become: true

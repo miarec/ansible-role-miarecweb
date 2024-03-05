@@ -1,4 +1,6 @@
 ---
+
+
 # Install and Configure PostgreSQL
 - name: Debian - Install PostgreSQL
   block:
@@ -25,6 +27,13 @@
 
 - name: CentOS 7 - Install PostgreSQL
   block:
+
+    # - name: Install dependencies
+    #   packages:
+    #     name: python-pacakaging
+    #     state: present
+
+
     - name: CentOS 7 - Install the PostgreSQL repository
       yum:
         name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
@@ -58,8 +67,24 @@
 
   when: ansible_distribution == "CentOS"
 
+# ansible_python_interpreter: /usr/local/bin/python3.11    # Use Python3 install on previous step
+# Centos7 does not have python3 installed, Ansible will use system python, 2.7
+# ther is no psycopg2-binary package for python2.7
+# so for this step we have to instruct ansible to user python3 compiled in previous step
+# ansible_python_interpreter: "{{ python3_bin_location }}"
+- set_fact:
+    compiled_python3_bin: "/usr/local/bin/python{{ '.'.join(python_version.split('.')[:2]) }}"
+  when: ansible_distribution == "CentOS"
+
+
 - name: Configure PostgreSQL
+  vars:
+    # ansible_python_interpreter: "{{ compiled_python3_bin is 'compiled_python3_bin' in vars else '/usr/bin/python3'}}"
+    ansible_python_interpreter: "{{ compiled_python3_bin if 'compiled_python3_bin' in vars else '/usr/bin/python3' }}"
   block:
+
+    - debug: var=ansible_python_interpreter
+
     - name: Install psycopg2 for ansible to be able to create postgresql users
       pip:
         name: psycopg2-binary

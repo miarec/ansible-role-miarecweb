@@ -16,20 +16,29 @@
     - set_fact:
         miarecweb_version: "{{ lookup('env', 'MIARECWEB_VERSION') }}"
         miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
+        python_version: "{{ lookup('env', 'MIARECWEB_PYTHON_VERSION') }}"
 
-    - name: Get full python3.8 version
-      command: python3.8 --version
-      changed_when: false
-      register: _python_version
+    # - name: Get full python3.8 version
+    #   command: python3.8 --version
+    #   changed_when: false
+    #   register: _python_version
 
 
-    - name: Define Install location of python3.8
-      set_fact:
-        python_install_dir: /usr
+    # - name: Define Install location of python3.8
+    #   set_fact:
+    #     python_install_dir: /usr
 
-    - name: Define python_version
-      set_fact:
-        python_version: "{{ _python_version.stdout | split(' ') | last }}"
+
+
+
+    # - name: Define Install location of Python
+    #   set_fact:
+    #     # python_version: 3.11.7
+    #     python_install_dir: /usr/local
+
+    # - name: Define python_version
+    #   set_fact:
+    #     python_version: "{{ _python_version.stdout | split(' ') | last }}"
 
   roles:
     - role: ansible-role-miarecweb
