@@ -19,6 +19,25 @@
     - unixodbc-dev
   when: ansible_os_family == "Debian"
 
+# Enable CRB on rockylinux 9
+- name: Enable CRB repo | RockyLinux 9
+  ini_file:
+    dest: /etc/yum.repos.d/rocky.repo
+    section: crb
+    option: enabled
+    value: 1
+  when:
+    - ansible_distribution == "Rocky"
+    - ansible_distribution_major_version == "9"
+
+# # Enable CRB on rockylinux 9
+# # This is nto idempotenent...
+# - name: Enable CRB repo | RockyLinux 9
+#   command: dnf config-manager --enable crb
+#   when:
+#     - ansible_distribution == "Rocky"
+#     - ansible_distribution_major_version == "9"
+
 - name: install dependencies | RedHat
   package:
     name: "{{ item }}"

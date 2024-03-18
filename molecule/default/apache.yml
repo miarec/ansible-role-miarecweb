@@ -20,20 +20,41 @@
         enabled: true
   when: ansible_os_family == "Debian"
 
+# - name: CentOS 7 - Install and Configure Apache
+#   block:
+#     - name: CentOS 7 - Install Apache
+#       yum:
+#         name: "{{ item }}"
+#         state: present
+#       with_items:
+#         - httpd
 
-- name: CentOS 7 - Install and Configure Apache
+#     - name: Restart and Enable Apache service
+#       service:
+#         name: httpd
+#         state: started
+#         enabled: true
+
+#   when: ansible_distribution == "CentOS"
+
+- name: Install and Configure Apache | RedHat
   block:
-    - name: CentOS 7 - Install Apache
+    - name: Install Apache | RedHat
       yum:
         name: "{{ item }}"
         state: present
       with_items:
         - httpd
 
-    - name: Restart and Enable Apache service
+    - name: Restart and Enable Apache service | RedHat
       service:
         name: httpd
         state: started
         enabled: true
 
-  when: ansible_distribution == "CentOS"
+    - name: Ensure httpd certs are installed (RHEL 8 and later).
+      command: /usr/libexec/httpd-ssl-gencerts
+      when:
+        - ansible_distribution_major_version | int >= 8
+
+  when: ansible_os_family == "RedHat"
