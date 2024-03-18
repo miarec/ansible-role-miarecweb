@@ -116,8 +116,14 @@
 # ansible_python_interpreter: "{{ python3_bin_location }}"
 - set_fact:
     compiled_python3_bin: "/usr/local/bin/python{{ '.'.join(python_version.split('.')[:2]) }}"
-  when: ansible_distribution == "CentOS"
+  # when: ansible_distribution == "CentOS"
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version <= '8'
 
+# - set_fact:
+#     compiled_python3_bin: "/usr/local/bin/python{{ '.'.join(python_version.split('.')[:2]) }}"
+#   when: ansible_distribution == "Rocky"
 
 - name: Configure PostgreSQL
   vars:
@@ -128,10 +134,12 @@
 
     - debug: var=ansible_python_interpreter
 
+    # make sure this is needed on Centos
     - name: Install dependencies
       package:
         name: python-pip
         state: present
+      when: ansible_distribution == "CentOS"
 
     - name: Install psycopg2 for ansible to be able to create postgresql users
       pip:
