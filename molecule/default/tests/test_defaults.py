@@ -40,7 +40,14 @@ def test_service(host):
             "celerybeat",
             "apache2"
         ]
-    if host.system_info.distribution == "centos":
+    # if host.system_info.distribution == "centos":
+    #     services = [
+    #         "celeryd",
+    #         "celerybeat",
+    #         "httpd"
+    #     ]
+
+    else:
         services = [
             "celeryd",
             "celerybeat",
