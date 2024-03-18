@@ -58,6 +58,7 @@
     - unixODBC-devel
   when: ansible_os_family == "RedHat"
 
+# this is required for mod_wsgi install
 - name: install Additional dependencies | Rocky 8
   package:
     name: "{{ item }}"

@@ -1,71 +1,49 @@
 ---
-# Install python from package
-# - name: Debian - Install Python3 from package
-#   block:
-#     - name: Debian - Install python3.8 dependencies
-#       apt:
-#         name: "{{ item }}"
-#         state: present
-#         update_cache: true
-#       with_items:
-#         - gpg-agent
 
-#     - name: Debian - Install deadsnakes repository
-#       apt_repository:
-#         validate_certs: false
-#         repo: ppa:deadsnakes/ppa
-#         state: present
-#       become: true
+# UBI vs RHEL
+# package `bzip2-devel` and `devtoolset-11` are not available on UBI7
+# on RHEL7, they would be available via `rhel-7-server-rpms` and `rhel-7-seerver-rhscl`
+- name: Install dependencies from CentOS Repositories | RHEL 7
+  when:
+    - ansible_distribution == "RedHat"
+    - ansible_distribution_major_version == "7"
+  block:
 
-#     - name: Debian - Install Python3.8 packages
-#       apt:
-#         name: "{{ item }}"
-#         state: present
-#         update_cache: true
-#       with_items:
-#         - python3.8
-#         - python3.8-dev
-#         - python3.8-venv
+    - set_fact:
+        _tmp_repos:
+          - name: base
+            url: http://mirror.centos.org/centos/7/os/x86_64/
+          - name: sclo
+            url: http://mirror.centos.org/centos/7/sclo/x86_64/rh/
 
+        _tmp_packages:
+          - name: bzip2-devel
+            repo: base
+          - name: devtoolset-11
+            repo: sclo, base
 
-#   when: ansible_os_family == "Debian"
+    - name: Add Temporary Repositories | RHEL
+      yum_repository:
+          name: "{{ item.name }}"
+          description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
+          baseurl: "{{ item.url }}"
+          enabled: false
+      with_items: "{{ _tmp_repos }}"
+      loop_control:
+        label: "{{ item.name }}"
 
-# - name: CentOS 7 - Install Python3.8 from package - RPM
-#   block:
-
-#     - name: CentOS 7 - Install Python3.8 dependencies
-#       yum:
-#         name: "{{ item }}"
-#         state: present
-#       with_items:
-#         - centos-release-scl-rh
-
-#     - name: CentOS 7 - Install Python3.8 packages
-#       yum:
-#         name: "{{ item }}"
-#         state: present
-#       with_items:
-#         - rh-python38-python
-#         - rh-python38-python-devel
-
-#     - name: Create Symbolic link
-#       file:
-#         src: /opt/rh/rh-python38/root/usr/bin/python3.8
-#         dest: /usr/bin/python3.8
-#         state: link
-
-#   when: ansible_os_family == "RedHat"
-
-
-
-
-
-
-
+    - name: Install missing packages | RHEL
+      yum:
+        name: "{{ item.name }}"
+        state: present
+        enablerepo: "{{ item.repo }}"
+        disable_gpg_check: true
+      with_items: "{{ _tmp_packages }}"
+      loop_control:
+        label: "{{ item.name }}"
 
 
 # Install from source
-
 - set_fact:
     python_dependencies:
       - gcc
@@ -96,7 +74,7 @@
   with_items: "{{ python_dependencies }}"
 
 
-- name: For RedHat 7, install additional build dependencies
+- name: For CentOS/RedHat 7, install additional build dependencies
   when:
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version == '7'
@@ -117,6 +95,12 @@
         name: epel-release
         state: present
       when: ansible_distribution == "CentOS"
+
+    - name: Install EPEL | RHEL 7
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+      when: ansible_distribution == "RedHat"
 
     - name: Install build dependencies | RedHat 7
       package:
