@@ -23,7 +23,7 @@
   when: not miarecweb_app_dir_exists.stat.exists
 
 
-- name: Download miarecweb tarbal
+- name: Download miarecweb tarball
   get_url:
     url: "{{ miarecweb_download_base_url }}/{{ miarecweb_tarball_file | replace('+', '%2b') }}"
     dest: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"

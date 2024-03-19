@@ -1,6 +1,4 @@
 ---
-
-
 # Install and Configure PostgreSQL
 - name: Debian - Install PostgreSQL
   block:

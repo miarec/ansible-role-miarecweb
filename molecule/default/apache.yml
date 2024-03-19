@@ -20,32 +20,67 @@
         enabled: true
   when: ansible_os_family == "Debian"
 
-# - name: CentOS 7 - Install and Configure Apache
-#   block:
-#     - name: CentOS 7 - Install Apache
-#       yum:
-#         name: "{{ item }}"
-#         state: present
-#       with_items:
-#         - httpd
-
-#     - name: Restart and Enable Apache service
-#       service:
-#         name: httpd
-#         state: started
-#         enabled: true
-
-#   when: ansible_distribution == "CentOS"
 
 - name: Install and Configure Apache | RedHat
+  when:
+    - ansible_os_family == "RedHat"
   block:
+
+
+    # Install apache on CentOS7, Rocky8-9, RHEL8-9
     - name: Install Apache | RedHat
       yum:
         name: "{{ item }}"
         state: present
       with_items:
         - httpd
+        - httpd-devel
         - mod_ssl
+      when: not (ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7')
+
+
+    # Install apache on RHEL 7 using centos repos
+    # httpd-devel is not available in ubi repos
+    - name: Install Apache | RedHat 7
+      when:
+        - ansible_distribution == "RedHat"
+        - ansible_distribution_major_version == "7"
+      block:
+        - set_fact:
+            _tmp_repos:
+              - name: base
+                url: http://mirror.centos.org/centos/7/os/x86_64/
+                gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+              - name: updates
+                url: http://mirror.centos.org/centos/7/updates/x86_64/
+                gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+
+        - name: Add CentOS Repositories on UBI instance | RHEL 7
+          yum_repository:
+              name: "{{ item.name }}"
+              description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
+              baseurl: "{{ item.url }}"
+              enabled: false
+              gpgkey: "{{ item.gpg }}"
+          when:
+            - ansible_distribution == "RedHat"
+            - ansible_distribution_major_version == "7"
+          with_items: "{{ _tmp_repos }}"
+          loop_control:
+            label: "{{ item.name }}"
+
+
+        - name: Install Apache | RedHat
+          yum:
+            name: "{{ item }}"
+            state: present
+            enablerepo: "base,updates"    ## I need to make this dependant on vars maybe
+            disablerepo: ubi-7
+          with_items:
+            - httpd
+            - httpd-devel
+            - mod_ssl
+
 
     - name: Ensure httpd certs are installed (RHEL 8 and later).
       command: /usr/libexec/httpd-ssl-gencerts
@@ -58,4 +93,4 @@
         state: started
         enabled: true
 
-  when: ansible_os_family == "RedHat"
+
