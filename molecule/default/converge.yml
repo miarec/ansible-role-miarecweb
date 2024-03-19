@@ -28,12 +28,14 @@
 
 
 
-    - name: Install dependencies from CentOS Repositories | RHEL 8
+    - name: Install dependencies from CentOS Repositories | RHEL 8+
       when:
         - ansible_distribution == "RedHat"
-        - ansible_distribution_major_version == "8"
+        - ansible_distribution_major_version >= "8"
       block:
-      - set_fact:
+
+      - name: Define repos and packages for RHEL 8
+        set_fact:
           _tmp_repos:
             - name: powertools
               url: http://mirror.centos.org/centos/8-stream/PowerTools/x86_64/os/
@@ -42,9 +44,26 @@
           _tmp_packages:
             - name: perl-IPC-Run
               repo: powertools
+        when: ansible_distribution_major_version == "8"
 
 
-      - name: Add Temporary Repositories | RHEL 8
+      - name: Define repos and packages for RHEL 9
+        set_fact:
+          _tmp_repos:
+            - name: crb
+              url: https://mirror.stream.centos.org/9-stream/CRB/x86_64/os/
+              gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-Official
+
+          _tmp_packages:
+            - name: unixODBC-devel
+              repo: crb
+            - name: perl-IPC-Run
+              repo: crb
+
+        when: ansible_distribution_major_version == "9"
+
+
+      - name: Add Temporary Repositories | RHEL 8+
         yum_repository:
             name: "{{ item.name }}"
             description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
@@ -56,7 +75,7 @@
           label: "{{ item.name }}"
 
 
-      - name: Install missing packages | RHEL 8
+      - name: Install missing packages | RHEL 8+
         yum:
           name: "{{ item.name }}"
           state: present
