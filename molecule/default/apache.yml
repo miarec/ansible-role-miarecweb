@@ -26,7 +26,6 @@
     - ansible_os_family == "RedHat"
   block:
 
-
     # Install apache on CentOS7, Rocky8-9, RHEL8-9
     - name: Install Apache | RedHat
       yum:
