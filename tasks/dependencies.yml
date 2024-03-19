@@ -66,5 +66,4 @@
   with_items:
     - redhat-rpm-config
   when:
-    # - ansible_distribution == "Rocky"
     - ansible_distribution_major_version == "8"

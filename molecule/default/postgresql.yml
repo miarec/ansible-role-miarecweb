@@ -1,6 +1,7 @@
 ---
 # Install and Configure PostgreSQL
-- name: Debian - Install PostgreSQL
+- name: PostgreSQL | Install PostgreSQL | Debian
+  when: ansible_os_family == "Debian"
   block:
     - name: Debian - Update apt cache
       apt:
@@ -9,7 +10,7 @@
       changed_when: false
       when: ansible_os_family == "Debian"
 
-    - name: Debian - Install PostgreSQL packages
+    - name: PostgreSQL | Install PostgreSQL packages | Debian
       apt:
         name: "{{ item }}"
         state: present
@@ -17,70 +18,28 @@
         - postgresql
         - postgresql-contrib
 
-    - name: Debian - Start PostgreSQL service
+    - name: PostgreSQL | Start PostgreSQL service | Debian
       service:
         name: postgresql
         state: started
-  when: ansible_os_family == "Debian"
-
-# - name: CentOS 7 - Install PostgreSQL
-#   when: ansible_distribution == "CentOS"
-#   block:
-
-#     # - name: Install dependencies
-#     #   packages:
-#     #     name: python-pacakaging
-#     #     state: present
 
 
-#     - name: CentOS 7 - Install the PostgreSQL repository
-#       yum:
-#         name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-#         state: present
-
-#     - name: CentOS 7 - Install PostgreSQL packages
-#       yum:
-#         name: "{{ item }}"
-#         state: present
-#       with_items:
-#         - postgresql12-server
-#         - postgresql12-contrib
-#       register: _postrgesql_yum_install
-
-#     - name: CentOS 7 - Inititialize the database
-#       shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
-#       when: _postrgesql_yum_install.changed
-
-#     - name: CentOS 7 - Modify pg_hba.conf file
-#       copy:
-#         content: |
-#           # set permissions to access databases
-#           local all all peer
-#           host miarecdb miarec 127.0.0.1/32 md5
-#         dest: /var/lib/pgsql/12/data/pg_hba.conf
-
-#     - name: CentOS 7 - Start PostgreSQL service
-#       service:
-#         name: postgresql-12
-#         state: started
-
-
-- name: RedHat - Install PostgreSQL
+- name: PostgreSQL | Install PostgreSQL | RedHat
   when: ansible_os_family == "RedHat"
   block:
 
-    - name: RedHat - Install the PostgreSQL repository
+    - name: PostgreSQL | Install the PostgreSQL repository | RedHat
       yum:
         name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version  }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm
         state: present
         disable_gpg_check: true
 
-    - name: RedHat - Disable PostgreSQL module
+    - name: PostgreSQL | Disable PostgreSQL module | RedHat
       command: dnf module disable postgresql -y
       failed_when: false
       when: ansible_distribution_major_version >= '8'
 
-    - name: RedHat - Install PostgreSQL packages
+    - name: PostgreSQL | Install PostgreSQL packages | RedHat
       yum:
         name: "{{ item }}"
         state: present
@@ -89,11 +48,11 @@
         - postgresql12-contrib
       register: _postrgesql_yum_install
 
-    - name: RedHat - Inititialize the database
+    - name: PostgreSQL | Inititialize the database | RedHat
       shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
       when: _postrgesql_yum_install.changed
 
-    - name: RedHat - Modify pg_hba.conf file
+    - name: PostgreSQL | Modify pg_hba.conf file | RedHat
       copy:
         content: |
           # set permissions to access databases
@@ -101,7 +60,7 @@
           host miarecdb miarec 127.0.0.1/32 md5
         dest: /var/lib/pgsql/12/data/pg_hba.conf
 
-    - name: RedHat - Start PostgreSQL service
+    - name: PostgreSQL | Start PostgreSQL service | RedHat
       service:
         name: postgresql-12
         state: started
@@ -112,54 +71,75 @@
 # ther is no psycopg2-binary package for python2.7
 # so for this step we have to instruct ansible to user python3 compiled in previous step
 # ansible_python_interpreter: "{{ python3_bin_location }}"
-- set_fact:
-    compiled_python3_bin: "/usr/local/bin/python{{ '.'.join(python_version.split('.')[:2]) }}"
-  # when: ansible_distribution == "CentOS"
-  when:
-    - ansible_os_family == "RedHat"
-    - ansible_distribution_major_version <= '8'
+# - set_fact:
+#     compiled_python3_bin: "/usr/local/bin/python{{ '.'.join(python_version.split('.')[:2]) }}"
+#   # when: ansible_distribution == "CentOS"
+#   when:
+#     - ansible_os_family == "RedHat"
+#     - ansible_distribution_major_version <= '8'
 
 # - set_fact:
 #     compiled_python3_bin: "/usr/local/bin/python{{ '.'.join(python_version.split('.')[:2]) }}"
 #   when: ansible_distribution == "Rocky"
 
-- name: Configure PostgreSQL
+- name: PostgreSQL | Configure PostgreSQL
   vars:
     # ansible_python_interpreter: "{{ compiled_python3_bin is 'compiled_python3_bin' in vars else '/usr/bin/python3'}}"
-    ansible_python_interpreter: "{{ compiled_python3_bin if 'compiled_python3_bin' in vars else '/usr/bin/python3' }}"
+    # ansible_python_interpreter: "{{ compiled_python3_bin if 'compiled_python3_bin' in vars else '/usr/bin/python3' }}"
     ansible_shell_allow_world_readable_temp: true
   block:
 
-    - debug: var=ansible_python_interpreter
+    # - debug: var=ansible_python_interpreter
 
-    # make sure this is needed on Centos  // also RHEL9
-    - name: Install pip
-      package:
-        name: python-pip
-        state: present
-      # when: ansible_distribution == "CentOS"
+    # # make sure this is needed on Centos  // also RHEL9
+    # - name: Install pip
+    #   package:
+    #     name: python-pip
+    #     state: present
+    #   # when: ansible_distribution == "CentOS"
 
-    - name: Install psycopg2 for ansible to be able to create postgresql users
-      pip:
-        name: psycopg2-binary
-        state: present
+    # - name: Install psycopg2 for ansible to be able to create postgresql users
+    #   pip:
+    #     name: psycopg2-binary
+    #     state: present
 
-    - name: Create PostgreSQL user
-      postgresql_user:
-        name: "miarec"
-        password: "password"
-        state: present
-        port: 5432
+
+    - name: PostgreSQL | Create user
+      command: psql -c "CREATE USER miarec WITH PASSWORD 'password' ;"
       become: true
       become_user: "postgres"
 
-    - name: Create PostgreSQL database
-      postgresql_db:
-        name: "miarecdb"
-        owner: "miarec"
-        state: present
+    - name: PostgreSQL | Create Database
+      command: psql -c "CREATE DATABASE miarecdb OWNER miarec;"
       become: true
       become_user: "postgres"
+
+    - name: PostgreSQL | Create Extentions
+      command: "psql -d miarecdb -c 'CREATE EXTENSION IF NOT EXISTS \"{{ item }}\" ;'"
+      become: true
+      become_user: "postgres"
+      with_items:
+        - hstore
+        - uuid-ossp
+        - pg_stat_statements
+
+    # - name: Create PostgreSQL user
+    #   postgresql_user:
+    #     name: "miarec"
+    #     password: "password"
+    #     state: present
+    #     port: 5432
+    #   become: true
+    #   become_user: "postgres"
+
+
+    # - name: Create PostgreSQL database
+    #   postgresql_db:
+    #     name: "miarecdb"
+    #     owner: "miarec"
+    #     state: present
+    #   become: true
+    #   become_user: "postgres"
 
     # This might not be needed.....
     # - name: Update user permissions for PostgreSQL User
@@ -169,14 +149,14 @@
     #   become: true
     #   become_user: "postgres"
 
-    - name: Install PostgreSQL Database Extensions
-      postgresql_ext:
-        name: "{{ item }}"
-        db: "miarecdb"
-        state: present
-      become: true
-      become_user: "postgres"
-      with_items:
-        - hstore
-        - uuid-ossp
-        - pg_stat_statements
+    # - name: Install PostgreSQL Database Extensions
+    #   postgresql_ext:
+    #     name: "{{ item }}"
+    #     db: "miarecdb"
+    #     state: present
+    #   become: true
+    #   become_user: "postgres"
+    #   with_items:
+    #     - hstore
+    #     - uuid-ossp
+    #     - pg_stat_statements

@@ -1,20 +1,21 @@
 ---
-
-# UBI vs RHEL
-# package `bzip2-devel` and `devtoolset-11` are not available on UBI7
-# on RHEL7, they would be available via `rhel-7-server-rpms` and `rhel-7-seerver-rhscl`
-- name: Install dependencies from CentOS Repositories | RHEL 7
+- name: Python | Install missing dependencies from CentOS Repositories for UBI | RHEL 7
   when:
     - ansible_distribution == "RedHat"
     - ansible_distribution_major_version == "7"
   block:
 
-    - set_fact:
+    # package `bzip2-devel` and `devtoolset-11` are not available on UBI7
+    # on RHEL7, they would be available via `rhel-7-server-rpms` and `rhel-7-seerver-rhscl`
+    - name: Python | Define Repos and Packages | RHEL 7
+      set_fact:
         _tmp_repos:
           - name: base
             url: http://mirror.centos.org/centos/7/os/x86_64/
+            gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
           - name: sclo
             url: http://mirror.centos.org/centos/7/sclo/x86_64/rh/
+            gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
 
         _tmp_packages:
           - name: bzip2-devel
@@ -22,29 +23,28 @@
           - name: devtoolset-11
             repo: sclo, base
 
-    - name: Add Temporary Repositories | RHEL
+    - name: Python | Add Temporary Repositories | RHEL 7
       yum_repository:
           name: "{{ item.name }}"
           description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
           baseurl: "{{ item.url }}"
           enabled: false
+          gpgkey: "{{ item.gpg }}"
       with_items: "{{ _tmp_repos }}"
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Install missing packages | RHEL
+    - name: Python | Install missing packages | RHEL 7
       yum:
         name: "{{ item.name }}"
         state: present
         enablerepo: "{{ item.repo }}"
-        disable_gpg_check: true
       with_items: "{{ _tmp_packages }}"
       loop_control:
         label: "{{ item.name }}"
 
-
-# Install from source
-- set_fact:
+- name: Python | Define build dependencies | RedHat
+  set_fact:
     python_dependencies:
       - gcc
       - make
@@ -56,7 +56,8 @@
       - libffi-devel
   when: ansible_os_family == "RedHat"
 
-- set_fact:
+- name: Python | Define build dependencies | Debian
+  set_fact:
     python_dependencies:
     - gcc
     - make
@@ -67,14 +68,14 @@
     - python3-pip
   when: ansible_os_family == "Debian"
 
-- name: Install build dependencies
+- name: Python | Install build dependencies
   package:
     name: "{{ item }}"
     state: present
   with_items: "{{ python_dependencies }}"
 
 
-- name: For CentOS/RedHat 7, install additional build dependencies
+- name: Python | For CentOS/RedHat 7, install additional build dependencies
   when:
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version == '7'
@@ -83,26 +84,26 @@
     # SCL are required for dev-toolset-11 package
     # For RedHat Enterprise, you may need to manually add it with:
     #    yum-config-manager --enable rhel-server-rhscl-11-rpms
-    - name: Install Software Collections (SCL) | CentOS 7
+    - name: Python |  Install Software Collections (SCL) | CentOS 7
       package:
         name: centos-release-scl
         state: present
       when: ansible_distribution == "CentOS"
 
     # EPEL is required for openssl11 package
-    - name: Install EPEL | CentOS 7
+    - name: Python | Install EPEL | CentOS 7
       package:
         name: epel-release
         state: present
       when: ansible_distribution == "CentOS"
 
-    - name: Install EPEL | RHEL 7
+    - name: Python | Install EPEL | RHEL 7
       yum:
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         state: present
       when: ansible_distribution == "RedHat"
 
-    - name: Install build dependencies | RedHat 7
+    - name: Python | Install build dependencies | RedHat 7
       package:
         name: "{{ item }}"
         state: present
@@ -111,29 +112,29 @@
         - devtoolset-11
         - openssl11-devel
 
-    - name: Get OpenSSL 1.1.1 CFLAGS | RedHat 7
+    - name: Python | Get OpenSSL 1.1.1 CFLAGS | RedHat 7
       shell: pkg-config --cflags openssl11
       register: openssl11_cflags
       changed_when: false
 
-    - name: Get OpenSSL 1.1.1 LIBS | RedHat 7
+    - name: Python | Get OpenSSL 1.1.1 LIBS | RedHat 7
       shell: pkg-config --libs openssl11
       register: openssl11_libs
       changed_when: false
 
-    - name: Prepare python compile flags | RedHat 7
+    - name: Python | Prepare python compile flags | RedHat 7
       set_fact:
         python_cppflags: "{{ openssl11_cflags.stdout }}"
         python_ldflags: "{{ openssl11_libs.stdout }}"
         python_configure_command: "scl enable devtoolset-11 -- ./configure"
         python_make_command: "scl enable devtoolset-11 -- make"
 
-- name: Download python source code
+- name: Python | Download source code
   get_url:
     url: "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz"
     dest: "/tmp/Python-{{ python_version }}.tgz"
 
-- name: Untar the source package
+- name: Python | Untar the source package
   unarchive:
     src: "/tmp/Python-{{ python_version }}.tgz"
     dest: "/tmp"
@@ -141,9 +142,8 @@
     copy: false
 
 
-- name: Run configure
+- name: Python | Run configure
   shell: "{{ python_configure_command | default('./configure') }} --enable-optimizations --enable-shared --prefix=/usr/local"
-  # shell: "./configure --enable-optimizations --enable-shared --prefix=/usr/local"
   args:
     chdir: "/tmp/Python-{{ python_version }}"
     creates: "/tmp/Python-{{ python_version }}/Makefile"
@@ -151,19 +151,15 @@
     CPPFLAGS: "{{ python_cppflags | default('') }}"
     LDFLAGS: "{{ python_ldflags | default('') }} -Wl,-rpath=/usr/local/lib"
 
-- name: Run make
+- name: Python | Run make
   shell: "{{ python_make_command | default('make') }}  -j{{ ansible_processor_cores }}"
-  # shell: "make -j{{ ansible_processor_cores }}"
-  # shell: "make"
   args:
     chdir: "/tmp/Python-{{ python_version }}"
     creates: "/tmp/Python-{{ python_version }}/python"
 
 
-- name: Run make altinstall
+- name: Python | Run make altinstall
   command: make altinstall
   args:
     chdir: "/tmp/Python-{{ python_version }}"
-    # creates: "/usr/local/bin/python311"     # this is incorrect, but proabbly not needed
-  # when: not python_force_install|bool
   become: true

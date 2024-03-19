@@ -23,8 +23,6 @@ provisioner:
     MIARECWEB_SECRET: ${MOLECULE_MIARECWEB_SECRET:-"secret"}
     MIARECWEB_PYTHON_VERSION: ${MOLECULE_MIARECWEB_PYTHON_VERSION:-"3.11.7"}
 
-
-
 verifier:
   name: testinfra
   options:
