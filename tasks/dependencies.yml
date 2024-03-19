@@ -59,12 +59,12 @@
   when: ansible_os_family == "RedHat"
 
 # this is required for mod_wsgi install
-- name: install Additional dependencies | Rocky 8
+- name: install Additional dependencies | RHEL 8
   package:
     name: "{{ item }}"
     state: present
   with_items:
     - redhat-rpm-config
   when:
-    - ansible_distribution == "Rocky"
+    # - ansible_distribution == "Rocky"
     - ansible_distribution_major_version == "8"
