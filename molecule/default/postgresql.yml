@@ -132,12 +132,12 @@
 
     - debug: var=ansible_python_interpreter
 
-    # make sure this is needed on Centos
-    - name: Install dependencies
+    # make sure this is needed on Centos  // also RHEL9
+    - name: Install pip
       package:
         name: python-pip
         state: present
-      when: ansible_distribution == "CentOS"
+      # when: ansible_distribution == "CentOS"
 
     - name: Install psycopg2 for ansible to be able to create postgresql users
       pip:
