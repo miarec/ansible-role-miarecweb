@@ -5,7 +5,7 @@ driver:
   name: docker
 platforms:
   - name: instance
-    image: geerlingguy/docker-${MOLECULE_DISTRO:-ubuntu2204}-ansible:latest
+    image: miarecdevops/docker-${MOLECULE_DISTRO:-ubuntu2204}-init:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
@@ -18,8 +18,11 @@ provisioner:
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
   env:
-    MIARECWEB_VERSION: ${MOLECULE_MIARECWEB_VERSION:-"8.0.0.3911"}
+    ANSIBLE_VERBOSITY: ${MOLECULE_ANSIBLE_VERBOSITY:-0}
+    MIARECWEB_VERSION: ${MOLECULE_MIARECWEB_VERSION:-"2024.1.0.0"}
     MIARECWEB_SECRET: ${MOLECULE_MIARECWEB_SECRET:-"secret"}
+    MIARECWEB_PYTHON_VERSION: ${MOLECULE_MIARECWEB_PYTHON_VERSION:-"3.11.7"}
+
 verifier:
   name: testinfra
   options:

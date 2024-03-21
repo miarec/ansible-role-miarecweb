@@ -30,15 +30,22 @@ jobs:
           - ubuntu2004
           - ubuntu2204
           - centos7
+          - rockylinux9
+          - rockylinux8
+          - rhel9
+          - rhel8
+          - rhel7
         version:
-          - 8.0.0.3971
+          - ${{ vars.MIARECWEB_VERSION }}
+        python_version:
+          - ${{ vars.MIARECWEB_PYTHON_VERSION }}
 
     steps:
       - name: Check out the Repository
         uses: actions/checkout@v4
 
       - name: Set up Python3
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -55,3 +62,4 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
           MOLECULE_MIARECWEB_VERSION: ${{ matrix.version }}
+          MOLECULE_MIARECWEB_PYTHON_VERSION: ${{ matrix.python_version }}

@@ -23,7 +23,7 @@
   when: not miarecweb_app_dir_exists.stat.exists
 
 
-- name: Download miarecweb tarbal
+- name: Download miarecweb tarball
   get_url:
     url: "{{ miarecweb_download_base_url }}/{{ miarecweb_tarball_file | replace('+', '%2b') }}"
     dest: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
@@ -78,7 +78,9 @@
   shell:
     cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/pip install -e ."
     chdir: "{{ deploy_helper.new_release_path }}/app"
-    creates: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"
+    # creates: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"    # This file was not created when installing version `2024.2.7.7` and using python 3.11.7
+    creates: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb.egg-link"
+
 
 # --------------------------------------------------
 # Configuration file production.ini

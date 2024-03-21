@@ -19,6 +19,30 @@
     - unixodbc-dev
   when: ansible_os_family == "Debian"
 
+# PowerTools is required for `perl-IPC-Run`
+- name: Enable Powertools repo | RockyLinux 8
+  ini_file:
+    dest: /etc/yum.repos.d/Rocky-PowerTools.repo
+    section: powertools
+    option: enabled
+    value: 1
+    mode: 0644
+  when:
+    - ansible_distribution == "Rocky"
+    - ansible_distribution_major_version == "8"
+
+# CRB is required for `perl-IPC-Run`
+- name: Enable CRB repo | RockyLinux 9
+  ini_file:
+    dest: /etc/yum.repos.d/rocky.repo
+    section: crb
+    option: enabled
+    value: 1
+    mode: 0644
+  when:
+    - ansible_distribution == "Rocky"
+    - ansible_distribution_major_version == "9"
+
 - name: install dependencies | RedHat
   package:
     name: "{{ item }}"
@@ -35,3 +59,13 @@
     - postgresql-devel
     - unixODBC-devel
   when: ansible_os_family == "RedHat"
+
+# this is required for mod_wsgi install
+- name: install Additional dependencies | RHEL 8
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - redhat-rpm-config
+  when:
+    - ansible_distribution_major_version == "8"
