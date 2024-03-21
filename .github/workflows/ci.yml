@@ -38,6 +38,8 @@ jobs:
           - rhel7
         version:
           - ${{ vars.MIARECWEB_VERSION }}
+        python_version:
+          - ${{ vars.MIARECWEB_PYTHON_VERSION }}
 
     steps:
       - name: Check out the Repository
@@ -61,3 +63,4 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
           MOLECULE_MIARECWEB_VERSION: ${{ matrix.version }}
+          MOLECULE_MIARECWEB_PYTHON_VERSION: ${{ matrix.python_version }}

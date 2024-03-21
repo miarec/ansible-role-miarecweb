@@ -12,16 +12,20 @@
         _tmp_repos:
           - name: base
             url: http://mirror.centos.org/centos/7/os/x86_64/
-            gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+            # gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
           - name: sclo
             url: http://mirror.centos.org/centos/7/sclo/x86_64/rh/
-            gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+            # gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+            # gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-Official
+            # I cannot find correct gpg key for sclo repo,  Im looking into still
 
         _tmp_packages:
           - name: bzip2-devel
             repo: base
           - name: devtoolset-11
-            repo: sclo, base
+            repo:
+              - base
+              - sclo
 
     - name: Python | Add Temporary Repositories | RHEL 7
       yum_repository:
@@ -29,7 +33,7 @@
           description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
           baseurl: "{{ item.url }}"
           enabled: false
-          gpgkey: "{{ item.gpg }}"
+          gpgkey: "{{ item.gpg | default(omit) }}"
       with_items: "{{ _tmp_repos }}"
       loop_control:
         label: "{{ item.name }}"
@@ -39,6 +43,7 @@
         name: "{{ item.name }}"
         state: present
         enablerepo: "{{ item.repo }}"
+        disable_gpg_check: true
       with_items: "{{ _tmp_packages }}"
       loop_control:
         label: "{{ item.name }}"
