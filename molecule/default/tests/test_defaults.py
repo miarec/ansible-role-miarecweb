@@ -40,7 +40,8 @@ def test_service(host):
             "celerybeat",
             "apache2"
         ]
-    if host.system_info.distribution == "centos":
+
+    else:
         services = [
             "celeryd",
             "celerybeat",
@@ -60,3 +61,6 @@ def test_socket(host):
     for socket in sockets:
         s = host.socket(socket)
         assert s.is_listening
+
+def test_script(host):
+    assert host.run("/opt/miarecweb/current/pyenv/bin/python -m miarecweb.scripts.create_root_user -u admin -p admin").rc == 0, "Miarecweb script failed to execute"

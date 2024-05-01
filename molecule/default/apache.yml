@@ -1,8 +1,9 @@
 ---
 # Install and configure Apache
-- name: Debian - Install and Configure Apache
+- name: Apache | Install and Configure Apache | Debian
+  when: ansible_os_family == "Debian"
   block:
-    - name: Debian - Install Apache package
+    - name: Apache | Install Apache package | Debian
       apt:
         name: "{{ item }}"
         state: present
@@ -10,30 +11,87 @@
       with_items:
         - apache2
 
-    - name: Debian - Enable a2enmod rewrite module
+    - name: Apache | Enable a2enmod rewrite module | Debian
       shell: "a2enmod rewrite"
 
-    - name: Debian - Restart Apache service
+    - name: Apache | Restart Apache service | Debian
       service:
         name: apache2
         state: restarted
         enabled: true
-  when: ansible_os_family == "Debian"
 
-
-- name: CentOS 7 - Install and Configure Apache
+- name: Apache | Install and Configure Apache | RedHat
+  when:
+    - ansible_os_family == "RedHat"
   block:
-    - name: CentOS 7 - Install Apache
+
+    # Install apache on CentOS7, Rocky8-9, RHEL8-9
+    - name: Apache | Install Apache | RedHat
       yum:
         name: "{{ item }}"
         state: present
       with_items:
         - httpd
+        - httpd-devel
+        - mod_ssl
+      when: not (ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7')
 
-    - name: Restart and Enable Apache service
+
+    # Install apache on RHEL 7 using centos repos
+    # httpd-devel is not available in ubi repos, installing from CentOS Repos
+    # version of httpd-devel is to old for versions of httpd and mod_ssl
+    # Install all packages from CentOS Repos
+    - name: Apache | Install Apache | RHEL 7
+      when:
+        - ansible_distribution == "RedHat"
+        - ansible_distribution_major_version == "7"
+      block:
+        - name: Apache | Define repos and packages | RHEL7
+          set_fact:
+            _tmp_repos:
+              - name: base
+                url: http://mirror.centos.org/centos/7/os/x86_64/
+                gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+              - name: updates
+                url: http://mirror.centos.org/centos/7/updates/x86_64/
+                gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+
+        - name: Apache | Add CentOS Repositories on UBI instance | RHEL 7
+          yum_repository:
+              name: "{{ item.name }}"
+              description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
+              baseurl: "{{ item.url }}"
+              enabled: false
+              gpgkey: "{{ item.gpg }}"
+          when:
+            - ansible_distribution == "RedHat"
+            - ansible_distribution_major_version == "7"
+          with_items: "{{ _tmp_repos }}"
+          loop_control:
+            label: "{{ item.name }}"
+
+
+        - name: Apache | Install Apache | RHEL 7
+          yum:
+            name: "{{ item }}"
+            state: present
+            enablerepo: "base,updates"    ## I need to make this dependant on vars maybe
+            disablerepo: ubi-7
+          with_items:
+            - httpd
+            - httpd-devel
+            - mod_ssl
+
+    # Configure Apache
+    - name: Apache | Ensure httpd certs are installed | RHEL 8+
+      command: /usr/libexec/httpd-ssl-gencerts
+      when:
+        - ansible_distribution_major_version | int >= 8
+
+    - name: Apache | Restart and Enable Apache service | RedHat
       service:
         name: httpd
         state: started
         enabled: true
 
-  when: ansible_distribution == "CentOS"
+
