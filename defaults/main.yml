@@ -156,3 +156,7 @@ miarecweb_custom_ini_settings: []
 # Multiple values are supported:
 #   miarecweb_trusted_proxy: 10.0.0.2 10.0.0.3
 miarecweb_trusted_proxy: ""
+
+
+# Sentry integration (optional)
+miarecweb_sentry_dsn: ""

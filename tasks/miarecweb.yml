@@ -161,6 +161,8 @@
       line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
     - regexp: '^miarec.sox_path = '
       line: 'miarec.sox_path = {{ sox_path }}'
+    - regexp: '^sentry.dsn = '
+      line: 'sentry.dsn = {{ miarecweb_sentry_dsn }}'
   notify:
     - reload apache
     - reload celeryd
