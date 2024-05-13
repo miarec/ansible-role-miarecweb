@@ -14,38 +14,52 @@
     path: "{{ deploy_helper.new_release_path }}/app"
   register: miarecweb_app_dir_exists
 
-
-- name: Add an unfinished file, to allow cleanup on successful finalize
-  file:
-    path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
-    state: touch
-    mode: '0644'
+- name: Download and extract source package.
   when: not miarecweb_app_dir_exists.stat.exists
+  block:
+
+    - name: Add an unfinished file, to allow cleanup on successful finalize
+      file:
+        path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
+        state: touch
+        mode: '0644'
+      when: not miarecweb_app_dir_exists.stat.exists
 
 
-- name: Download miarecweb tarball
-  get_url:
-    url: "{{ miarecweb_download_base_url }}/{{ miarecweb_tarball_file | replace('+', '%2b') }}"
-    dest: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
-    mode: '0644'
-  when: not miarecweb_app_dir_exists.stat.exists
+    - name: Download miarecweb tarball
+      get_url:
+        url: "{{ miarecweb_download_base_url }}/{{ miarecweb_tarball_file | replace('+', '%2b') }}"
+        dest: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
+        mode: '0644'
+      when: not miarecweb_app_dir_exists.stat.exists
+
+    # unarchive must change the permissions of the destination folder when mode parameter is supplied.
+    # But it behaves differently with tar.gz and zip archives.
+    # When extracting tar.gz, it doesn't touch the destination folder's permissions.
+    # While in case of extracting zip into something like /tmp/ with mode: 755, it overrides the permissions of /tmp to 755.
+    # This step will create a direcoty specific to this role to extract files to
+    - name: Create directory for extracted files
+      file:
+        path: "{{ miarecweb_download_dir }}/miarecweb"
+        state: directory
+        mode: u=rwX,g=rX,o=rX
+      register: _extract_dir
+
+    - name: Untar the source package
+      unarchive:
+        src: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
+        dest: "{{ _extract_dir.path }}/"
+        creates: "{{ _extract_dir.path }}/miarecweb-{{ miarecweb_version }}"
+        copy: false
+        mode: u=rwX,g=rX,o=rX
+      when: not miarecweb_app_dir_exists.stat.exists
 
 
-- name: Untar the source package
-  unarchive:
-    src: "{{ miarecweb_download_dir }}/{{ miarecweb_tarball_file }}"
-    dest: "{{ miarecweb_download_dir }}/"
-    creates: "{{ miarecweb_download_dir }}/miarecweb-{{ miarecweb_version }}"
-    copy: false
-    mode: u=rwX,g=rX,o=rX
-  when: not miarecweb_app_dir_exists.stat.exists
-
-
-- name: Move app directory to releases folder
-  command: mv "{{ miarecweb_download_dir }}/miarecweb-{{ miarecweb_version }}" "{{ deploy_helper.new_release_path }}/app"
-  args:
-    creates: "{{ deploy_helper.new_release_path }}/app"
-  when: not miarecweb_app_dir_exists.stat.exists
+    - name: Move app directory to releases folder
+      command: mv "{{ _extract_dir.path }}/miarecweb-{{ miarecweb_version }}" "{{ deploy_helper.new_release_path }}/app"
+      args:
+        creates: "{{ deploy_helper.new_release_path }}/app"
+      when: not miarecweb_app_dir_exists.stat.exists
 
 
 # --------------------------------------------------
