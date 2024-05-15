@@ -1,53 +1,5 @@
 ---
-- name: Python | Install missing dependencies from CentOS Repositories for UBI | RHEL 7
-  when:
-    - ansible_distribution == "RedHat"
-    - ansible_distribution_major_version == "7"
-  block:
-
-    # package `bzip2-devel` and `devtoolset-11` are not available on UBI7
-    # on RHEL7, they would be available via `rhel-7-server-rpms` and `rhel-7-seerver-rhscl`
-    - name: Python | Define Repos and Packages | RHEL 7
-      set_fact:
-        _tmp_repos:
-          - name: base
-            url: http://mirror.centos.org/centos/7/os/x86_64/
-            # gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
-          - name: sclo
-            url: http://mirror.centos.org/centos/7/sclo/x86_64/rh/
-            # gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
-            # gpg: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-Official
-            # I cannot find correct gpg key for sclo repo,  Im looking into still
-
-        _tmp_packages:
-          - name: bzip2-devel
-            repo: base
-          - name: devtoolset-11
-            repo:
-              - base
-              - sclo
-
-    - name: Python | Add Temporary Repositories | RHEL 7
-      yum_repository:
-          name: "{{ item.name }}"
-          description: "Centos {{ ansible_distribution_major_version }} - {{ item.name }}"
-          baseurl: "{{ item.url }}"
-          enabled: false
-          gpgkey: "{{ item.gpg | default(omit) }}"
-      with_items: "{{ _tmp_repos }}"
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: Python | Install missing packages | RHEL 7
-      yum:
-        name: "{{ item.name }}"
-        state: present
-        enablerepo: "{{ item.repo }}"
-        disable_gpg_check: true
-      with_items: "{{ _tmp_packages }}"
-      loop_control:
-        label: "{{ item.name }}"
-
+# Install Build Dependincies for Python
 - name: Python | Define build dependencies | RedHat
   set_fact:
     python_dependencies:
@@ -60,6 +12,7 @@
       - zlib-devel
       - libffi-devel
   when: ansible_os_family == "RedHat"
+
 
 - name: Python | Define build dependencies | Debian
   set_fact:
@@ -89,26 +42,29 @@
     # SCL are required for dev-toolset-11 package
     # For RedHat Enterprise, you may need to manually add it with:
     #    yum-config-manager --enable rhel-server-rhscl-11-rpms
-    - name: Python |  Install Software Collections (SCL) | CentOS 7
+    - name: Python |  Install Software Collections (SCL)
       package:
         name: centos-release-scl
         state: present
-      when: ansible_distribution == "CentOS"
+      # when: ansible_distribution == "CentOS"
 
     # EPEL is required for openssl11 package
-    - name: Python | Install EPEL | CentOS 7
-      package:
-        name: epel-release
-        state: present
+    - name: Python | Define EPEL package | CentOS 7
+      set_fact:
+        epel_package: epel-release
       when: ansible_distribution == "CentOS"
 
-    - name: Python | Install EPEL | RHEL 7
-      yum:
-        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-        state: present
+    - name: Python | Define EPEL pacakage | RHEL 7
+      set_fact:
+        epel_package: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       when: ansible_distribution == "RedHat"
 
-    - name: Python | Install build dependencies | RedHat 7
+    - name: Python | Install EPEL
+      package:
+        name: "{{ epel_package }}"
+        state: present
+
+    - name: Python | Install additional build dependencies | RedHat 7
       package:
         name: "{{ item }}"
         state: present
