@@ -31,6 +31,7 @@ jobs:
         distro:
           - ubuntu2004
           - ubuntu2204
+          - ubuntu2404
           - centos7
           - rockylinux9
           - rockylinux8
@@ -53,6 +54,9 @@ jobs:
 
       - name: Install test dependencies
         run: pip3 install -r molecule/default/test-requirements.txt
+
+      - name: get list of version
+        run: pip3 freeze
 
       - name: Install Ansible dependencies.
         run: ansible-galaxy collection install community.docker ansible.posix --force
