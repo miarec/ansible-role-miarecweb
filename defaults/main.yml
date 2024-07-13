@@ -18,8 +18,6 @@ postgresql_bin_directory: /usr/bin
 # Sox variables
 sox_path: /usr/local/bin/sox
 
-# A version of mod_wsgi module 
-mod_wsgi_version: 5.0.0
 
 # ----------------------------
 # Database settings
@@ -45,6 +43,17 @@ miarecweb_redis_socket_connect_timeout: 60
 miarecweb_redis_socket_keepalive: true
 miarecweb_redis_health_check_interval: 300
 miarecweb_redis_pool_recycle: 3600
+
+# -----------------------------
+# mod_wsgi settings
+# -----------------------------
+# A version of mod_wsgi module 
+mod_wsgi_version: 5.0.0
+mod_wsgi_processes: "{{ ansible_processor_vcpus | default(ansible_processor_count) }}"
+mod_wsgi_threads: 5
+mod_wsgi_user: {{ apache_user }}
+mod_wsgi_group: {{ apache_group }}
+mod_wsgi_maximum_requests: 10000
 
 
 # A secret key used for encrypting secrets in the database.

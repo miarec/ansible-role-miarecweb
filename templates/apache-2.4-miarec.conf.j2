@@ -14,13 +14,18 @@ WSGIPassAuthorization On
 WSGIPythonHome {{ wsgi_python_home }}
 WSGIPythonPath {{ wsgi_python_path }}
 
-WSGIDaemonProcess miarec user={{ apache_user }} group={{ apache_group }}
-WSGIProcessGroup miarec
+WSGIDaemonProcess miarecweb user={{ mod_wsgi_user }} group={{ mod_wsgi_group }} processes={{ mod_wsgi_processes }} threads={{ mod_wsgi_threads }} maximum-requests={{ mod_wsgi_maximum_requests }} display-name=%{GROUP}
+WSGIProcessGroup miarecweb
 
 Alias /favicon.ico {{ miarecweb_root_dir }}/app/miarecweb/static/favicon.ico
 Alias /static {{ miarecweb_root_dir }}/app/miarecweb/static
 
-WSGIScriptAlias / {{ miarecweb_root_dir }}/miarec.wsgi process-group=miarec
+WSGIScriptAlias / {{ miarecweb_root_dir }}/miarec.wsgi process-group=miarecweb
+
+# Ensure application preloaded on process start. Must specify the
+# process group and application group (Python interpreter) to use.
+WSGIImportScript {{ miarecweb_root_dir }}/miarec.wsgi process-group=miarecweb application-group=%{GLOBAL}
+
 
 # Custom error page (for 500 Internal Server Error). More user-friendly
 ErrorDocument 500 /error
