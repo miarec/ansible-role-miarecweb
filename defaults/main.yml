@@ -30,8 +30,8 @@ miarecweb_db_name: miarecdb
 miarecweb_db_user: miarec
 miarecweb_db_password: password
 
-miarecweb_db_pool_size: 20
-miarecweb_db_pool_recycle: -1
+miarecweb_db_pool_size: 5
+miarecweb_db_pool_recycle: 3600
 miarecweb_db_pool_use_lifo: true
 
 # -----------------------------
@@ -44,7 +44,7 @@ miarecweb_redis_socket_timeout: 60
 miarecweb_redis_socket_connect_timeout: 60
 miarecweb_redis_socket_keepalive: true
 miarecweb_redis_health_check_interval: 300
-miarecweb_redis_pool_recycle: -1
+miarecweb_redis_pool_recycle: 3600
 
 
 # A secret key used for encrypting secrets in the database.
