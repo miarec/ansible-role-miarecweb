@@ -51,8 +51,8 @@ miarecweb_redis_pool_recycle: 3600
 mod_wsgi_version: 5.0.0
 mod_wsgi_processes: "{{ ansible_processor_vcpus | default(ansible_processor_count) }}"
 mod_wsgi_threads: 5
-mod_wsgi_user: {{ apache_user }}
-mod_wsgi_group: {{ apache_group }}
+mod_wsgi_user: "{{ apache_user }}"
+mod_wsgi_group: "{{ apache_group }}"
 mod_wsgi_maximum_requests: 10000
 
 
