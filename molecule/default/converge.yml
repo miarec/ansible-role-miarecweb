@@ -26,6 +26,14 @@
         state: present
       when: ansible_distribution == "CentOS"
 
+    # required for miarecweb.yml - Install dependencies (requirements.txt)
+    - name: Install python3-packaging | Rockylinux 9
+      package:
+        name: python3-packaging
+        state: present
+      when:
+        - ansible_distribution == "Rocky"
+        - ansible_distribution_major_version == '9'
 
   roles:
     - role: ansible-role-miarecweb
