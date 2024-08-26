@@ -26,6 +26,7 @@
     - python3-pip
   when: ansible_os_family == "Debian"
 
+
 - name: Python | Install build dependencies
   package:
     name: "{{ item }}"
@@ -48,21 +49,44 @@
         state: present
       # when: ansible_distribution == "CentOS"
 
-    # EPEL is required for openssl11 package
-    - name: Python | Define EPEL package | CentOS 7
-      set_fact:
-        epel_package: epel-release
+    - name: Python | Fix Repos | Comment out mirrorlist lines
+      replace:
+        path: "{{ item }}"
+        regexp: '^mirrorlist'
+        replace: '#mirrorlist'
+      with_items:
+        - "/etc/yum.repos.d/CentOS-SCLo-scl.repo"
+        - "/etc/yum.repos.d/CentOS-SCLo-scl-rh.repo"
+
+    - name: Python | Fix Repos | Replace baseurl with vault URL
+      replace:
+        path: "{{ item }}"
+        regexp: '^#\s*baseurl=http://mirror.centos.org'
+        replace: 'baseurl=http://vault.centos.org'
+      with_items:
+        - "/etc/yum.repos.d/CentOS-SCLo-scl.repo"
+        - "/etc/yum.repos.d/CentOS-SCLo-scl-rh.repo"
+
+    # # EPEL is required for openssl11 package
+    # - name: Python | Define EPEL package | CentOS 7
+    #   set_fact:
+    #     epel_package: epel-release
+    #   when: ansible_distribution == "CentOS"
+
+    - name: Python | Install EPEL | CentOS 7
+      package:
+        name: epel-release
+        state: present
       when: ansible_distribution == "CentOS"
 
-    - name: Python | Define EPEL pacakage | RHEL 7
-      set_fact:
-        epel_package: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    - name: Python | Install EPEL | RedHat 7
+      yum_repository:
+        name: epel
+        description: EPEL
+        baseurl: "https://dl.fedoraproject.org/pub/archive/epel/7/x86_64/"
+        gpgkey: "http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+        enabled: true
       when: ansible_distribution == "RedHat"
-
-    - name: Python | Install EPEL
-      package:
-        name: "{{ epel_package }}"
-        state: present
 
     - name: Python | Install additional build dependencies | RedHat 7
       package:
