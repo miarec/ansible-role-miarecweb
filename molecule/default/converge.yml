@@ -16,7 +16,7 @@
         update_cache: true
         cache_valid_time: 600
       changed_when: false
-      when: ansible_os_family == "Debian"
+      when: ansible_facts['os_family'] == "Debian"
 
     # required for miarecweb.yml - Install dependencies (requirements.txt)
     # I want to re test this, I dont ubderstand why we need system python pip
@@ -24,7 +24,7 @@
       package:
         name: python-pip
         state: present
-      when: ansible_distribution == "CentOS"
+      when: ansible_facts['distribution'] == "CentOS"
 
     # required for miarecweb.yml - Install dependencies (requirements.txt)
     - name: Install python3-packaging | Rockylinux 9
@@ -32,8 +32,8 @@
         name: python3-packaging
         state: present
       when:
-        - ansible_distribution == "Rocky"
-        - ansible_distribution_major_version == '9'
+        - ansible_facts['distribution'] == "Rocky"
+        - ansible_facts['distribution_major_version'] == '9'
 
   roles:
     - role: ansible-role-miarecweb

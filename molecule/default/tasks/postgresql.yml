@@ -1,0 +1,99 @@
+---
+# Install and Configure PostgreSQL
+- name: PostgreSQL | Update apt cache | Debian
+  apt:
+    update_cache: true
+    cache_valid_time: 600
+  changed_when: false
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: PostgreSQL | Install PostgreSQL packages | Debian
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql
+    - postgresql-contrib
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: PostgreSQL | Start PostgreSQL service | Debian
+  service:
+    name: postgresql
+    state: started
+  when: ansible_facts['os_family'] == "Debian"
+
+
+- name: PostgreSQL | Install the PostgreSQL repository | RedHat
+  yum:
+    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_facts['distribution_major_version'] }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    state: present
+    disable_gpg_check: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: PostgreSQL | Disable PostgreSQL module | RedHat
+  command: dnf module disable postgresql -y
+  failed_when: false
+  changed_when: false
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['distribution_major_version'] >= '8'
+
+- name: PostgreSQL | Install PostgreSQL packages | RedHat
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql12-server
+    - postgresql12-contrib
+  register: _postgresql_yum_install
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: PostgreSQL | Initialize the database | RedHat
+  command: /usr/pgsql-12/bin/postgresql-12-setup initdb
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - _postgresql_yum_install.changed
+  changed_when: true
+
+- name: PostgreSQL | Modify pg_hba.conf file | RedHat
+  copy:
+    content: |
+      # set permissions to access databases
+      local all all peer
+      host miarecdb miarec 127.0.0.1/32 md5
+    dest: /var/lib/pgsql/12/data/pg_hba.conf
+    mode: "0600"
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: PostgreSQL | Start PostgreSQL service | RedHat
+  service:
+    name: postgresql-12
+    state: started
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: PostgreSQL | Configure PostgreSQL
+  vars:
+    ansible_shell_allow_world_readable_temp: true
+  block:
+
+    - name: PostgreSQL | Create user
+      command: psql -c "CREATE USER miarec WITH PASSWORD 'password' ;"
+      become: true
+      become_user: "postgres"
+      changed_when: true
+
+    - name: PostgreSQL | Create Database
+      command: psql -c "CREATE DATABASE miarecdb OWNER miarec;"
+      become: true
+      become_user: "postgres"
+      changed_when: true
+
+    - name: PostgreSQL | Create Extentions
+      command: "psql -d miarecdb -c 'CREATE EXTENSION IF NOT EXISTS \"{{ item }}\" ;'"
+      become: true
+      become_user: "postgres"
+      changed_when: true
+      with_items:
+        - hstore
+        - uuid-ossp
+        - pg_stat_statements

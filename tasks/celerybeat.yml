@@ -54,13 +54,13 @@
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify:
     - start celerybeat
-  when: ansible_service_mgr|default() != "systemd"
+  when: ansible_facts['service_mgr']|default() != "systemd"
 
 - name: Remove /etc/init.d/celerybeat | SystemD
   file:
     path: "/etc/init.d/celerybeat"
     state: absent
-  when: ansible_service_mgr == "systemd"
+  when: ansible_facts['service_mgr'] == "systemd"
 
 
 - name: Install celerybeat service | SystemD
@@ -75,7 +75,7 @@
   notify:
     - reload celerybeat
     - reload systemd
-  when: ansible_service_mgr == "systemd"
+  when: ansible_facts['service_mgr'] == "systemd"
 
 
 - name: Enable celerybeat service

@@ -76,7 +76,7 @@
     dest: /etc/tmpfiles.d/celeryd.conf
     mode: '0644'
   when:
-    - ansible_service_mgr|default() == 'systemd'
+    - ansible_facts['service_mgr']|default() == 'systemd'
     - miarecweb_celery_pid_dir.startswith('/var/run') or miarecweb_celery_pid_dir.startswith('/run')
 
 
@@ -86,19 +86,19 @@
     dest: "/etc/init.d/celeryd"
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   vars:
     miarecweb_root_dir: "{{ deploy_helper.current_path }}"
   notify:
     - start celeryd
-  when: ansible_service_mgr|default() != "systemd"
+  when: ansible_facts['service_mgr']|default() != "systemd"
 
 
 - name: Remove /etc/init.d/celeryd | SystemD
   file:
     path: "/etc/init.d/celeryd"
     state: absent
-  when: ansible_service_mgr == "systemd"
+  when: ansible_facts['service_mgr'] == "systemd"
 
 
 - name: Install celery service | SystemD
@@ -113,7 +113,7 @@
   notify:
     - reload celeryd
     - reload systemd
-  when: ansible_service_mgr == "systemd"
+  when: ansible_facts['service_mgr'] == "systemd"
 
 
 - name: Enable celery service

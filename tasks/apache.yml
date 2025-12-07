@@ -7,7 +7,7 @@
     state: present
   with_items:
     - apache2-dev
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: install dependencies | RedHat
   package:
@@ -15,7 +15,7 @@
     state: present
   with_items:
     - httpd-devel
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 # ---------------------------------------------
 # Figure out what version of Apache is installed.
@@ -88,7 +88,7 @@
     miarecweb_root_dir: "{{ deploy_helper.new_release_path }}"
     mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
   notify: reload apache
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 
 - name: Install miarec.conf into apache conf.d directory | Debian
@@ -102,7 +102,7 @@
     miarecweb_root_dir: "{{ deploy_helper.new_release_path }}"
     mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
   notify: reload apache
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 
 - name: a2ensite miarec site | Debian
@@ -110,7 +110,7 @@
   args:
     creates: "{{ apache_conf_path }}/sites-enabled/miarec.conf"
   notify: reload apache
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 
 # Apache needs:
@@ -135,7 +135,7 @@
   with_items:
     - mod_ssl
   notify: reload apache
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 
 - name: enable Apache SSL module | Debian
@@ -143,7 +143,7 @@
     a2enmod ssl
     creates=/etc/apache2/mods-enabled/ssl.load
   notify: reload apache
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 
 - name: a2ensite default-ssl site | Debian
@@ -151,7 +151,7 @@
   args:
     creates: "{{ apache_conf_path }}/sites-enabled/default-ssl.conf"
   notify: reload apache
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 
 # --------------------------------------------------
@@ -163,7 +163,7 @@
     dest: "{{ apache_conf_path }}/miarec-ssl.conf"
     mode: '0644'
   notify: reload apache
-  when: miarecweb_force_https|bool and ansible_os_family == "RedHat"
+  when: miarecweb_force_https|bool and ansible_facts['os_family'] == "RedHat"
 
 
 - name: Install miarec-ssl.conf into apache conf.d directory | Debian
@@ -172,7 +172,7 @@
     dest: "{{ apache_conf_path }}/sites-available/miarec-ssl.conf"
     mode: '0644'
   notify: reload apache
-  when: miarecweb_force_https|bool and ansible_os_family == "Debian"
+  when: miarecweb_force_https|bool and ansible_facts['os_family'] == "Debian"
 
 
 - name: a2ensite miarec-ssl site | Debian
@@ -180,4 +180,4 @@
   args:
     creates: "{{ apache_conf_path }}/sites-enabled/miarec-ssl.conf"
   notify: reload apache
-  when: miarecweb_force_https|bool and ansible_os_family == "Debian"
+  when: miarecweb_force_https|bool and ansible_facts['os_family'] == "Debian"

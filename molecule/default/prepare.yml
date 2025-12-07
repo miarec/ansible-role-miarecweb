@@ -8,6 +8,6 @@
         python_version: "{{ lookup('env', 'MIARECWEB_PYTHON_VERSION') }}"
 
   tasks:
-    - include_tasks: python.yml
-    - include_tasks: postgresql.yml
-    - include_tasks: apache.yml
+    - include_tasks: tasks/python.yml
+    - include_tasks: tasks/postgresql.yml
+    - include_tasks: tasks/apache.yml
