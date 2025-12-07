@@ -8,6 +8,7 @@
     - set_fact:
         miarecweb_version: "{{ lookup('env', 'MIARECWEB_VERSION') }}"
         miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
 
     - name: Update apt cache | Debian
       apt:
