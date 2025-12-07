@@ -98,6 +98,7 @@
       become: true
       become_user: "postgres"
       when: _pg_user_exists.stdout != "1"
+      changed_when: true
 
     - name: PostgreSQL | Check if database exists
       command: psql -tAc "SELECT 1 FROM pg_database WHERE datname='miarecdb'"
@@ -111,6 +112,7 @@
       become: true
       become_user: "postgres"
       when: _pg_db_exists.stdout != "1"
+      changed_when: true
 
     - name: PostgreSQL | Create Extensions
       command: "psql -d miarecdb -c 'CREATE EXTENSION IF NOT EXISTS \"{{ item }}\";'"
