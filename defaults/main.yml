@@ -1,6 +1,6 @@
 ---
 # Version of MiaRecWeb files to install
-miarecweb_version: 5.2.0.2119
+miarecweb_version: ""
 
 # The python version to use for miarecweb.
 # Can be specified as:
