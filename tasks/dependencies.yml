@@ -12,6 +12,8 @@
     - gcc
     - g++
     - make
+    - cmake
+    - git
     - openssl
     - libpq-dev
     - libssl-dev
@@ -19,6 +21,15 @@
     - unixodbc-dev
     - postgresql-client
   when: ansible_os_family == "Debian"
+
+# python3-packaging is required for Ansible's pip module when Python is installed from packages
+- name: install python3-packaging | Debian
+  package:
+    pkg: python3-packaging
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+    - not (python_install_from_source | default(false) | bool)
 
 # PowerTools is required for `perl-IPC-Run`
 - name: Enable Powertools repo | RockyLinux 8
@@ -52,6 +63,8 @@
     - gcc
     - gcc-c++
     - make
+    - cmake
+    - git
     - openssl
     - openssl-devel
     - libffi-devel

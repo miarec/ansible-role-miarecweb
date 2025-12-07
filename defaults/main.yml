@@ -5,7 +5,9 @@ miarecweb_version: 5.2.0.2119
 # The python version to install miarecweb. Caution! The python should be installed in advance
 python_version: 3.6.3
 # Location of the installed python files
-python_install_dir: /usr/local
+# When Python is installed from source (python_install_from_source: true), it is at /usr/local
+# When Python is installed from packages (default), it is at /usr
+python_install_dir: "{{ '/usr/local' if (python_install_from_source | default(false) | bool) else '/usr' }}"
 
 
 # Vesion of PostgreSQL and location of its binaries
