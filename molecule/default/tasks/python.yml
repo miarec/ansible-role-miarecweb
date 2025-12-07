@@ -1,160 +1,48 @@
 ---
-# Install Build Dependencies for Python
-- name: Python | Define build dependencies | RedHat
+# Install Python from system packages (based on ansible-python role)
+
+# Define OS-specific Python packages
+- name: Python | Define packages | RedHat
   set_fact:
-    python_dependencies:
-      - gcc
-      - make
-      - findutils
-      - openssl-devel
-      - sqlite-devel
-      - bzip2-devel
-      - zlib-devel
-      - libffi-devel
+    python3_packages:
+      - python3
+      - python3-devel
   when: ansible_facts['os_family'] == "RedHat"
 
-
-- name: Python | Define build dependencies | Debian
+- name: Python | Define packages | Debian
   set_fact:
-    python_dependencies:
-      - gcc
-      - make
-      - libssl-dev
-      - libsqlite3-dev
-      - libbz2-dev
-      - libffi-dev
-      - python3-pip
+    python3_packages:
+      - python3
+      - python3-dev
+      - python3-venv
   when: ansible_facts['os_family'] == "Debian"
 
-# Removing `openssl-fips-provider` from RHEL9
-# This is needed to install `openssl-devel`
-# RHEL 9 and Rocky 9 handle FIPS diferently in openssl,
-# RHEL has a seperate package for the FIPS provider, in Rocky9 FIPS is included in openssl
-# as a result there are some conflicting files, specifically /usr/lib64/ossl-modules/fips.so
-# Because we are using rocky repos for RHEL9 in molecule, we most remove the conficting package
-# https://forums.rockylinux.org/t/issue-with-openssl-fips-provider-during-migration-from-rhel-9/15290/3
-- name: Python | remove openssl-fips-provider | RHEL9
+# Install EPEL for RedHat-based systems (except RHEL Enterprise itself)
+- name: Python | Install EPEL repository | RedHat
   yum:
-    name: openssl-fips-provider
-    state: absent
+    name: epel-release
+    state: present
   when:
-    - ansible_facts['distribution'] == "RedHat"
-    - ansible_facts['distribution_major_version'] == "9"
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['distribution'] != "RedHat"
 
-- name: Python | Install build dependencies
+# Install Python packages
+- name: Python | Install Python3 packages
   package:
     name: "{{ item }}"
     state: present
-  with_items: "{{ python_dependencies }}"
+  with_items: "{{ python3_packages }}"
 
+# Detect installed Python version
+- name: Python | Get installed Python3 version
+  command: python3 --version
+  register: python3_version_output
+  changed_when: false
 
-- name: Python | For CentOS/RedHat 7, install additional build dependencies
-  when:
-    - ansible_facts['os_family'] == "RedHat"
-    - ansible_facts['distribution_major_version'] == '7'
-    - python_version is version('3.8', '>=')
-  block:
-    # SCL are required for dev-toolset-11 package
-    # For RedHat Enterprise, you may need to manually add it with:
-    #    yum-config-manager --enable rhel-server-rhscl-11-rpms
-    - name: Python |  Install Software Collections (SCL)
-      package:
-        name: centos-release-scl
-        state: present
-      # when: ansible_distribution == "CentOS"
+- name: Python | Set python_version fact
+  set_fact:
+    python_version: "{{ python3_version_output.stdout | regex_replace('^Python\\s+', '') }}"
 
-    - name: Python | Fix Repos | Comment out mirrorlist lines
-      replace:
-        path: "{{ item }}"
-        regexp: '^mirrorlist'
-        replace: '#mirrorlist'
-      with_items:
-        - "/etc/yum.repos.d/CentOS-SCLo-scl.repo"
-        - "/etc/yum.repos.d/CentOS-SCLo-scl-rh.repo"
-
-    - name: Python | Fix Repos | Replace baseurl with vault URL
-      replace:
-        path: "{{ item }}"
-        regexp: '^#\s*baseurl=http://mirror.centos.org'
-        replace: 'baseurl=http://vault.centos.org'
-      with_items:
-        - "/etc/yum.repos.d/CentOS-SCLo-scl.repo"
-        - "/etc/yum.repos.d/CentOS-SCLo-scl-rh.repo"
-
-    - name: Python | Install EPEL | CentOS 7
-      package:
-        name: epel-release
-        state: present
-      when: ansible_facts['distribution'] == "CentOS"
-
-    - name: Python | Install EPEL | RedHat 7
-      yum_repository:
-        name: epel
-        description: EPEL
-        baseurl: "https://dl.fedoraproject.org/pub/archive/epel/7/x86_64/"
-        gpgkey: "http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_facts['distribution_major_version'] }}"
-        enabled: true
-      when: ansible_facts['distribution'] == "RedHat"
-
-    - name: Python | Install additional build dependencies | RedHat 7
-      package:
-        name: "{{ item }}"
-        state: present
-      become: true
-      with_items:
-        - devtoolset-11
-        - openssl11-devel
-
-    - name: Python | Get OpenSSL 1.1.1 CFLAGS | RedHat 7
-      command: pkg-config --cflags openssl11
-      register: openssl11_cflags
-      changed_when: false
-
-    - name: Python | Get OpenSSL 1.1.1 LIBS | RedHat 7
-      command: pkg-config --libs openssl11
-      register: openssl11_libs
-      changed_when: false
-
-    - name: Python | Prepare python compile flags | RedHat 7
-      set_fact:
-        python_cppflags: "{{ openssl11_cflags.stdout }}"
-        python_ldflags: "{{ openssl11_libs.stdout }}"
-        python_configure_command: "scl enable devtoolset-11 -- ./configure"
-        python_make_command: "scl enable devtoolset-11 -- make"
-
-- name: Python | Download source code
-  get_url:
-    url: "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz"
-    dest: "/tmp/Python-{{ python_version }}.tgz"
-    mode: "0644"
-
-- name: Python | Untar the source package
-  unarchive:
-    src: "/tmp/Python-{{ python_version }}.tgz"
-    dest: "/tmp"
-    creates: "/tmp/Python-{{ python_version }}/configure"
-    copy: false
-
-
-- name: Python | Run configure  # noqa: command-instead-of-shell
-  shell: "{{ python_configure_command | default('./configure') }} --enable-optimizations --enable-shared --prefix=/usr/local"
-  args:
-    chdir: "/tmp/Python-{{ python_version }}"
-    creates: "/tmp/Python-{{ python_version }}/Makefile"
-  environment:
-    CPPFLAGS: "{{ python_cppflags | default('') }}"
-    LDFLAGS: "{{ python_ldflags | default('') }} -Wl,-rpath=/usr/local/lib"
-
-- name: Python | Run make  # noqa: command-instead-of-shell
-  shell: "{{ python_make_command | default('make') }}  -j{{ ansible_facts['processor_cores'] }}"
-  args:
-    chdir: "/tmp/Python-{{ python_version }}"
-    creates: "/tmp/Python-{{ python_version }}/python"
-
-
-- name: Python | Run make altinstall
-  command: make altinstall
-  args:
-    chdir: "/tmp/Python-{{ python_version }}"
-  changed_when: true
-  become: true
+- name: Python | Display installed Python version
+  debug:
+    msg: "Installed Python version: {{ python_version }}"

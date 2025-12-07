@@ -12,19 +12,32 @@
   become: true
 
 # ---------------------------------------------
-# Verify python installation on this server
-# Input variables:
-#   - python_version
-#   - python_install_dir
+# Detect/verify python installation on this server
+# When python_install_from_source is false (default), auto-detect version
+# When python_install_from_source is true, use provided python_version
 # ---------------------------------------------
-- set_fact:
+- name: Detect Python version from system packages
+  when: not (python_install_from_source | default(false) | bool)
+  block:
+    - name: Get installed Python3 version
+      command: python3 --version
+      register: _python3_version_output
+      changed_when: false
+
+    - name: Set python_version from detected version
+      set_fact:
+        python_version: "{{ _python3_version_output.stdout | regex_replace('^Python\\s+', '') }}"
+
+- name: Set python_version_base fact
+  set_fact:
     ## Translate full python_version (3.4.5) to the MAJOR.MINOR value, like "3.4"
     python_version_base: "{{ '.'.join(python_version.split('.')[:2]) }}"
 
-- set_fact:
+- name: Set python_exec fact
+  set_fact:
     python_exec: "python{{ python_version_base }}"
 
-- name: check if python version {{ python_version }} installed
+- name: Verify Python {{ python_version }} is installed
   command: "which {{ python_install_dir }}/bin/{{ python_exec }}"
   changed_when: false
   become: true

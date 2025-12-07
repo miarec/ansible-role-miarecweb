@@ -2,7 +2,10 @@
 # Version of MiaRecWeb files to install
 miarecweb_version: 5.2.0.2119
 
-# The python version to install miarecweb. Caution! The python should be installed in advance
+# The python version to use for miarecweb.
+# When python_install_from_source is false (default), this value is auto-detected
+# from the system Python and does not need to be specified.
+# When python_install_from_source is true, this must be set to the compiled version.
 python_version: 3.6.3
 # Location of the installed python files
 # When Python is installed from source (python_install_from_source: true), it is at /usr/local
