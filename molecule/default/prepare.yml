@@ -6,4 +6,5 @@
   tasks:
     - include_tasks: tasks/python.yml
     - include_tasks: tasks/postgresql.yml
+    - include_tasks: tasks/redis.yml
     - include_tasks: tasks/apache.yml
