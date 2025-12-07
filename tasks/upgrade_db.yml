@@ -1,6 +1,6 @@
 ---
 - name: Check if database layout is up-to-date
-  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini current"
+  command: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/alembic -c {{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini current"
   register: _alembic_current_revision
   changed_when: false
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
@@ -24,7 +24,7 @@
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
 - name: Upgrade database layout   # noqa: no-changed-when
-  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/alembic -c {{ deploy_helper.new_release_path }}/production.ini upgrade heads"
+  command: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/alembic -c {{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini upgrade heads"
   register: _alembic_upgrade_head
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts

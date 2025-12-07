@@ -86,7 +86,7 @@
 - name: Cleanup old releases
   deploy_helper:
     path: "{{ miarecweb_install_dir }}"
-    release: '{{ deploy_helper.new_release }}'
+    release: "{{ ansible_facts['deploy_helper']['new_release'] }}"
     state: finalize
     keep_releases: 10
   notify:

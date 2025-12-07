@@ -41,7 +41,7 @@
 # --------------------------------------------------
 - name: Create cache directory for templates
   file:
-    path: '{{ deploy_helper.new_release_path }}/cache'
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/cache"
     owner: '{{ apache_user }}'
     group: '{{ apache_group }}'
     state: directory
@@ -52,13 +52,13 @@
   pip:
     name: mod_wsgi
     version: "{{ mod_wsgi_version }}"
-    executable: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip"
-    chdir: "{{ deploy_helper.new_release_path }}/app"
+    executable: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip"
+    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
     umask: "0022"
 
 
 - name: Get mod_wsgi module location
-  command: "{{ deploy_helper.new_release_path }}/pyenv/bin/mod_wsgi-express module-location"
+  command: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/mod_wsgi-express module-location"
   changed_when: false
   check_mode: false
   register: _mod_wsgi_file_path
@@ -69,8 +69,8 @@
 # --------------------------------------------------
 - name: Copy miarec.wsgi file
   copy:
-    src: "{{ deploy_helper.new_release_path }}/app/miarec.wsgi.sample"
-    dest: "{{ deploy_helper.new_release_path }}/miarec.wsgi"
+    src: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app/miarec.wsgi.sample"
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/miarec.wsgi"
     remote_src: true
     mode: '0644'
 
@@ -83,9 +83,9 @@
     dest: "{{ apache_conf_path }}/miarec.conf"
     mode: '0644'
   vars:
-    wsgi_python_home: "{{ deploy_helper.new_release_path }}/pyenv"
-    wsgi_python_path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
-    miarecweb_root_dir: "{{ deploy_helper.new_release_path }}"
+    wsgi_python_home: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
+    wsgi_python_path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages"
+    miarecweb_root_dir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}"
     mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
   notify: reload apache
   when: ansible_facts['os_family'] == "RedHat"
@@ -97,9 +97,9 @@
     dest: "{{ apache_conf_path }}/sites-available/miarec.conf"
     mode: '0644'
   vars:
-    wsgi_python_home: "{{ deploy_helper.new_release_path }}/pyenv"
-    wsgi_python_path: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages"
-    miarecweb_root_dir: "{{ deploy_helper.new_release_path }}"
+    wsgi_python_home: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
+    wsgi_python_path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages"
+    miarecweb_root_dir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}"
     mod_wsgi_file_path: "{{ _mod_wsgi_file_path.stdout }}"
   notify: reload apache
   when: ansible_facts['os_family'] == "Debian"

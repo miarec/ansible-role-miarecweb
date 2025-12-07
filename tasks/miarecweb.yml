@@ -1,7 +1,7 @@
 ---
 - name: Create release directory
   file:
-    path: '{{ deploy_helper.new_release_path }}'
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}"
     state: directory
     mode: u=rwX,g=rX,o=rX
 
@@ -11,7 +11,7 @@
 
 - name: Verify app directory presense
   stat:
-    path: "{{ deploy_helper.new_release_path }}/app"
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
   register: miarecweb_app_dir_exists
 
 - name: Download and extract source package.
@@ -20,7 +20,7 @@
 
     - name: Add an unfinished file, to allow cleanup on successful finalize
       file:
-        path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
+        path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/{{ ansible_facts['deploy_helper']['unfinished_filename'] }}"
         state: touch
         mode: '0644'
       when: not miarecweb_app_dir_exists.stat.exists
@@ -56,9 +56,9 @@
 
 
     - name: Move app directory to releases folder
-      command: mv "{{ _extract_dir.path }}/miarecweb-{{ miarecweb_version }}" "{{ deploy_helper.new_release_path }}/app"
+      command: mv "{{ _extract_dir.path }}/miarecweb-{{ miarecweb_version }}" "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
       args:
-        creates: "{{ deploy_helper.new_release_path }}/app"
+        creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
       when: not miarecweb_app_dir_exists.stat.exists
 
 
@@ -67,22 +67,22 @@
 # --------------------------------------------------
 - name: Create python virtual environment
   shell:
-    cmd: "umask 0022 && {{ python_install_dir }}/bin/python{{ python_version_base }} -m venv {{ deploy_helper.new_release_path }}/pyenv"
-    creates: "{{ deploy_helper.new_release_path }}/pyenv"
+    cmd: "umask 0022 && {{ python_install_dir }}/bin/python{{ python_version_base }} -m venv {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
+    creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
   register: create_pyenv
 
 - name: Upgrade PIP and setuptools    # noqa: no-handler
   shell:
-    cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/python -m pip install --upgrade pip setuptools"
-    chdir: "{{ deploy_helper.new_release_path }}/app"
+    cmd: "umask 0022 && {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/python -m pip install --upgrade pip setuptools"
+    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
   changed_when: true
   when: create_pyenv.changed
 
 - name: Install dependencies (requirements.txt)
   pip:
     requirements: requirements.txt
-    executable: "{{ deploy_helper.new_release_path }}/pyenv/bin/pip"
-    chdir: "{{ deploy_helper.new_release_path }}/app"
+    executable: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip"
+    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
     umask: "0022"
   environment:
     # We need to add 'pg_config' to PATH. Otherwise psycopg2 build fails
@@ -90,10 +90,10 @@
 
 - name: Install MiaRecWeb
   shell:
-    cmd: "umask 0022 && {{ deploy_helper.new_release_path }}/pyenv/bin/pip install -e ."
-    chdir: "{{ deploy_helper.new_release_path }}/app"
-    # creates: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"    # This file was not created when installing version `2024.2.7.7` and using python 3.11.7
-    creates: "{{ deploy_helper.new_release_path }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb.egg-link"
+    cmd: "umask 0022 && {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip install -e ."
+    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
+    # creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"    # This file was not created when installing version `2024.2.7.7` and using python 3.11.7
+    creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb.egg-link"
 
 
 # --------------------------------------------------
@@ -104,8 +104,8 @@
 # --------------------------------------------------
 - name: Copy production.ini file     # noqa: risky-file-permissions
   copy:
-    src: "{{ deploy_helper.new_release_path }}/app/production.ini.sample"
-    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    src: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app/production.ini.sample"
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
     force: false
     remote_src: true
 
@@ -116,7 +116,7 @@
 # --------------------------------------------------
 - name: Configure file permissions on production.ini file ("miarec" group exists)
   file:
-    path: "{{ deploy_helper.new_release_path }}/production.ini"
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
     owner: root
     group: '{{ miarec_bin_group }}'
     mode: u=rwX,g=rX,o=
@@ -130,14 +130,14 @@
 # --------------------------------------------------
 - name: Configure file permissions on productio.ini file (no "miarec" group)
   file:
-    path: "{{ deploy_helper.new_release_path }}/production.ini"
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
     mode: u=rwX,g=rX,o=rX
   when: miarec_bin_group == 'root'
 
 
 - name: Configure production.ini file
   lineinfile:
-    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -172,7 +172,7 @@
     - regexp: '^miarec.jobs_log_directory = '
       line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
     - regexp: '^deform_mako.module_directory = '
-      line: 'deform_mako.module_directory = {{ deploy_helper.new_release_path }}/cache'
+      line: "deform_mako.module_directory = {{ ansible_facts['deploy_helper']['new_release_path'] }}/cache"
     - regexp: '^miarec.sox_path = '
       line: 'miarec.sox_path = {{ sox_path }}'
     - regexp: '^sentry.dsn = '
@@ -185,7 +185,7 @@
 
 - name: Configure secrets in production.ini file
   lineinfile:
-    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -204,7 +204,7 @@
 # --------------------------------------------------
 - name: Custom production.ini file settings    # noqa: risky-file-permissions
   ini_file:
-    dest: "{{ deploy_helper.new_release_path }}/production.ini"
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"

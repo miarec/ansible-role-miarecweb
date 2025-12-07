@@ -66,7 +66,7 @@
     group: root
     mode: '0644'
   vars:
-    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    miarecweb_root_dir: "{{ ansible_facts['deploy_helper']['current_path'] }}"
   notify: reload celeryd
 
 
@@ -88,7 +88,7 @@
     group: root
     mode: "0755"
   vars:
-    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    miarecweb_root_dir: "{{ ansible_facts['deploy_helper']['current_path'] }}"
   notify:
     - start celeryd
   when: ansible_facts['service_mgr']|default() != "systemd"
@@ -109,7 +109,7 @@
     group: root
     mode: '0644'
   vars:
-    miarecweb_root_dir: "{{ deploy_helper.current_path }}"
+    miarecweb_root_dir: "{{ ansible_facts['deploy_helper']['current_path'] }}"
   notify:
     - reload celeryd
     - reload systemd
