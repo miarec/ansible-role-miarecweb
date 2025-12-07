@@ -6,7 +6,7 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: ansible-role-miarecweb
+  - name: miarecweb-${MOLECULE_DISTRO:-ubuntu2404}
     image: ghcr.io/miarec/${MOLECULE_DISTRO:-ubuntu2404}-systemd:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
@@ -22,8 +22,9 @@ provisioner:
   env:
     ANSIBLE_VERBOSITY: ${MOLECULE_ANSIBLE_VERBOSITY:-0}
     ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/../
-    MIARECWEB_VERSION: ${MOLECULE_MIARECWEB_VERSION:-"2024.1.0.0"}
+    MIARECWEB_VERSION: ${MOLECULE_MIARECWEB_VERSION:-"2025.12.2.2"}
     MIARECWEB_SECRET: ${MOLECULE_MIARECWEB_SECRET:-"secret"}
+    PYTHON_VERSION: ${MOLECULE_PYTHON_VERSION:-"3.12"}
 
 verifier:
   name: testinfra

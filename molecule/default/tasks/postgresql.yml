@@ -1,5 +1,7 @@
 ---
-# Install and Configure PostgreSQL
+# Install and Configure PostgreSQL from system packages
+
+# ============ Debian ============
 - name: PostgreSQL | Update apt cache | Debian
   apt:
     update_cache: true
@@ -16,83 +18,106 @@
     - postgresql-contrib
   when: ansible_facts['os_family'] == "Debian"
 
-- name: PostgreSQL | Start PostgreSQL service | Debian
-  service:
-    name: postgresql
-    state: started
+# Discover pg_hba.conf path using pg_lsclusters (no server needed)
+- name: PostgreSQL | Get cluster info | Debian
+  command: pg_lsclusters -h
+  register: _pg_clusters
+  changed_when: false
   when: ansible_facts['os_family'] == "Debian"
 
+# pg_lsclusters output: "version cluster port status owner data_directory log_file"
+# Example: "16 main 5432 online postgres /var/lib/postgresql/16/main /var/log/..."
+- name: PostgreSQL | Set pg_hba_path fact | Debian
+  set_fact:
+    _pg_hba_path: "/etc/postgresql/{{ _pg_clusters.stdout_lines[0].split()[0] }}/{{ _pg_clusters.stdout_lines[0].split()[1] }}/pg_hba.conf"
+  when: ansible_facts['os_family'] == "Debian"
 
-- name: PostgreSQL | Install the PostgreSQL repository | RedHat
-  yum:
-    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_facts['distribution_major_version'] }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-    state: present
-    disable_gpg_check: true
-  when: ansible_facts['os_family'] == "RedHat"
-
-- name: PostgreSQL | Disable PostgreSQL module | RedHat
-  command: dnf module disable postgresql -y
-  failed_when: false
-  changed_when: false
-  when:
-    - ansible_facts['os_family'] == "RedHat"
-    - ansible_facts['distribution_major_version'] >= '8'
-
+# ============ RedHat ============
 - name: PostgreSQL | Install PostgreSQL packages | RedHat
-  yum:
+  package:
     name: "{{ item }}"
     state: present
   with_items:
-    - postgresql12-server
-    - postgresql12-contrib
-  register: _postgresql_yum_install
+    - postgresql-server
+    - postgresql-contrib
+  register: _postgresql_install
   when: ansible_facts['os_family'] == "RedHat"
 
 - name: PostgreSQL | Initialize the database | RedHat
-  command: /usr/pgsql-12/bin/postgresql-12-setup initdb
+  command: postgresql-setup --initdb
   when:
     - ansible_facts['os_family'] == "RedHat"
-    - _postgresql_yum_install.changed
+    - _postgresql_install.changed
   changed_when: true
 
-- name: PostgreSQL | Modify pg_hba.conf file | RedHat
+# System PostgreSQL packages always use /var/lib/pgsql/data/
+- name: PostgreSQL | Set pg_hba_path fact | RedHat
+  set_fact:
+    _pg_hba_path: "/var/lib/pgsql/data/pg_hba.conf"
+  when: ansible_facts['os_family'] == "RedHat"
+
+# ============ Common - Configure pg_hba.conf ============
+- name: PostgreSQL | Display pg_hba.conf path
+  debug:
+    msg: "PostgreSQL hba_file: {{ _pg_hba_path }}"
+
+- name: PostgreSQL | Configure pg_hba.conf
   copy:
     content: |
-      # set permissions to access databases
-      local all all peer
-      host miarecdb miarec 127.0.0.1/32 md5
-    dest: /var/lib/pgsql/12/data/pg_hba.conf
-    mode: "0600"
-  when: ansible_facts['os_family'] == "RedHat"
+      # PostgreSQL Client Authentication Configuration File
+      # TYPE  DATABASE        USER            ADDRESS                 METHOD
+      local   all             all                                     peer
+      host    miarecdb        miarec          127.0.0.1/32            md5
+      host    all             all             ::1/128                 md5
+    dest: "{{ _pg_hba_path }}"
+    mode: "0640"
+    owner: postgres
+    group: postgres
 
-- name: PostgreSQL | Start PostgreSQL service | RedHat
+# ============ Start PostgreSQL ============
+- name: PostgreSQL | Start PostgreSQL service
   service:
-    name: postgresql-12
+    name: postgresql
     state: started
-  when: ansible_facts['os_family'] == "RedHat"
 
+# ============ Create Database and User ============
 - name: PostgreSQL | Configure PostgreSQL
   vars:
     ansible_shell_allow_world_readable_temp: true
   block:
 
-    - name: PostgreSQL | Create user
-      command: psql -c "CREATE USER miarec WITH PASSWORD 'password' ;"
+    - name: PostgreSQL | Check if user exists
+      command: psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='miarec'"
       become: true
       become_user: "postgres"
-      changed_when: true
+      register: _pg_user_exists
+      changed_when: false
+
+    - name: PostgreSQL | Create user
+      command: psql -c "CREATE USER miarec WITH PASSWORD 'password';"
+      become: true
+      become_user: "postgres"
+      when: _pg_user_exists.stdout != "1"
+
+    - name: PostgreSQL | Check if database exists
+      command: psql -tAc "SELECT 1 FROM pg_database WHERE datname='miarecdb'"
+      become: true
+      become_user: "postgres"
+      register: _pg_db_exists
+      changed_when: false
 
     - name: PostgreSQL | Create Database
       command: psql -c "CREATE DATABASE miarecdb OWNER miarec;"
       become: true
       become_user: "postgres"
-      changed_when: true
+      when: _pg_db_exists.stdout != "1"
 
-    - name: PostgreSQL | Create Extentions
-      command: "psql -d miarecdb -c 'CREATE EXTENSION IF NOT EXISTS \"{{ item }}\" ;'"
+    - name: PostgreSQL | Create Extensions
+      command: "psql -d miarecdb -c 'CREATE EXTENSION IF NOT EXISTS \"{{ item }}\";'"
       become: true
       become_user: "postgres"
-      changed_when: true
+      register: _pg_ext_result
+      changed_when: "'already exists' not in _pg_ext_result.stderr"
       with_items:
         - hstore
         - uuid-ossp

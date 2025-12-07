@@ -1,6 +1,6 @@
 ---
 # ---------------------------------------------
-# Prepare for run
+# Prepare for run (includes Python version detection)
 # ---------------------------------------------
 - import_tasks: preflight.yml
 
@@ -9,37 +9,6 @@
 # Install dependencies
 # ---------------------------------------------
 - import_tasks: dependencies.yml
-  become: true
-
-# ---------------------------------------------
-# Detect/verify python installation on this server
-# When python_install_from_source is false (default), auto-detect version
-# When python_install_from_source is true, use provided python_version
-# ---------------------------------------------
-- name: Detect Python version from system packages
-  when: not (python_install_from_source | default(false) | bool)
-  block:
-    - name: Get installed Python3 version
-      command: python3 --version
-      register: _python3_version_output
-      changed_when: false
-
-    - name: Set python_version from detected version
-      set_fact:
-        python_version: "{{ _python3_version_output.stdout | regex_replace('^Python\\s+', '') }}"
-
-- name: Set python_version_base fact
-  set_fact:
-    ## Translate full python_version (3.4.5) to the MAJOR.MINOR value, like "3.4"
-    python_version_base: "{{ '.'.join(python_version.split('.')[:2]) }}"
-
-- name: Set python_exec fact
-  set_fact:
-    python_exec: "python{{ python_version_base }}"
-
-- name: Verify Python {{ python_version }} is installed
-  command: "which {{ python_install_dir }}/bin/{{ python_exec }}"
-  changed_when: false
   become: true
 
 # --------------------------------------------------

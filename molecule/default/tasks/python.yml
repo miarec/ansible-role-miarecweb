@@ -1,12 +1,19 @@
 ---
-# Install Python from system packages (based on ansible-python role)
+# Install Python from system packages
+# Uses python_version variable (e.g., "3.12") passed from prepare.yml
+
+# Parse python_version to get major.minor (e.g., "3.12" from "3.12.1")
+- name: Python | Parse version
+  set_fact:
+    _python_major_minor: "{{ '.'.join(python_version.split('.')[:2]) }}"
 
 # Define OS-specific Python packages
 - name: Python | Define packages | RedHat
   set_fact:
     python3_packages:
-      - python3
-      - python3-devel
+      - "python{{ _python_major_minor }}"
+      - "python{{ _python_major_minor }}-devel"
+      - "python{{ _python_major_minor }}-pip"
   when: ansible_facts['os_family'] == "RedHat"
 
 - name: Python | Define packages | Debian
@@ -26,6 +33,16 @@
     - ansible_facts['os_family'] == "RedHat"
     - ansible_facts['distribution'] != "RedHat"
 
+# Enable Python module stream for RHEL 9+ (AppStream provides python3.12)
+- name: Python | Enable Python {{ _python_major_minor }} module | RHEL 9+
+  command: "dnf module enable python{{ _python_major_minor }} -y"
+  when:
+    - ansible_facts['distribution'] == "RedHat"
+    - ansible_facts['distribution_major_version'] | int >= 9
+  register: _python_module_enable
+  changed_when: "'Nothing to do' not in _python_module_enable.stdout"
+  failed_when: false
+
 # Install Python packages
 - name: Python | Install Python3 packages
   package:
@@ -33,16 +50,3 @@
     state: present
   with_items: "{{ python3_packages }}"
 
-# Detect installed Python version
-- name: Python | Get installed Python3 version
-  command: python3 --version
-  register: python3_version_output
-  changed_when: false
-
-- name: Python | Set python_version fact
-  set_fact:
-    python_version: "{{ python3_version_output.stdout | regex_replace('^Python\\s+', '') }}"
-
-- name: Python | Display installed Python version
-  debug:
-    msg: "Installed Python version: {{ python_version }}"

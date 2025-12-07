@@ -92,8 +92,8 @@
   shell:
     cmd: "umask 0022 && {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip install -e ."
     chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
-    # creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"    # This file was not created when installing version `2024.2.7.7` and using python 3.11.7
-    creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb.egg-link"
+    # Modern pip creates .dist-info directory instead of .egg-link
+    creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"
 
 
 # --------------------------------------------------

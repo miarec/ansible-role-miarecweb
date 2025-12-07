@@ -58,12 +58,39 @@ This role uses [Molecule](https://molecule.readthedocs.io/) with Docker for test
 ### Running Tests
 
 ```bash
-# Run full test suite
+# Run full test suite (default: ubuntu2404)
 uv run molecule test
 
 # Test against specific distro
 MOLECULE_DISTRO=ubuntu2404 uv run molecule test
 MOLECULE_DISTRO=rockylinux9 uv run molecule test
+```
+
+### Running Individual Stages
+
+For development and debugging, you can run individual molecule stages:
+
+```bash
+# Create the container
+MOLECULE_DISTRO=ubuntu2404 uv run molecule create
+
+# Run preparation tasks (install Python, PostgreSQL, etc.)
+MOLECULE_DISTRO=ubuntu2404 uv run molecule prepare
+
+# Run the role (converge)
+MOLECULE_DISTRO=ubuntu2404 uv run molecule converge
+
+# Run tests/verification
+MOLECULE_DISTRO=ubuntu2404 uv run molecule verify
+
+# Run idempotence check
+MOLECULE_DISTRO=ubuntu2404 uv run molecule idempotence
+
+# Destroy the container
+MOLECULE_DISTRO=ubuntu2404 uv run molecule destroy
+
+# Login to the container for debugging
+MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 ```
 
 ### Available Distros
