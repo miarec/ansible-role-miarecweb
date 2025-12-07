@@ -34,15 +34,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro:
-          - ubuntu2204
-          - ubuntu2404
-          - rockylinux9
-          - rhel9
-        version:
-          - ${{ vars.MIARECWEB_VERSION }}
-        python_version:
-          - ${{ vars.MIARECWEB_PYTHON_VERSION }}
+        include:
+          - distro: ubuntu2204
+            python_version: "3"
+          - distro: ubuntu2404
+            python_version: "3"
+          - distro: rockylinux9
+            python_version: "3.12"
+          - distro: rhel9
+            python_version: "3.12"
 
     steps:
       - name: Check out the Repository
@@ -57,5 +57,5 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
-          MOLECULE_MIARECWEB_VERSION: ${{ matrix.version }}
-          MOLECULE_MIARECWEB_PYTHON_VERSION: ${{ matrix.python_version }}
+          MOLECULE_MIARECWEB_VERSION: ${{ vars.MIARECWEB_VERSION }}
+          MOLECULE_PYTHON_VERSION: ${{ matrix.python_version }}
