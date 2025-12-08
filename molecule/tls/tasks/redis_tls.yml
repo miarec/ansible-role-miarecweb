@@ -118,7 +118,9 @@
 
 # Detect Redis config path using redis-cli INFO
 - name: Redis | Get config file location from redis-cli INFO
-  shell: "redis-cli INFO | grep config_file | cut -d: -f2 | tr -d '\\r'"
+  shell: "set -o pipefail && redis-cli INFO | grep config_file | cut -d: -f2 | tr -d '\\r'"
+  args:
+    executable: /bin/bash
   register: _redis_info_config
   changed_when: false
 
