@@ -63,4 +63,7 @@ def test_socket(host):
         assert s.is_listening
 
 def test_script(host):
-    assert host.run("/opt/miarecweb/current/pyenv/bin/python -m miarecweb.scripts.create_root_user -u admin -p admin").rc == 0, "Miarecweb script failed to execute"
+    result = host.run("/opt/miarecweb/current/pyenv/bin/python -m miarecweb.scripts.create_root_user -u admin -p admin")
+    # rc == 0: User created successfully
+    # rc == 1 with "already exists": User already exists (idempotent - also success)
+    assert result.rc == 0 or "already exists" in result.stderr, f"Miarecweb script failed: {result.stderr}"

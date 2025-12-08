@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 LoadModule wsgi_module {{ mod_wsgi_file_path }}
-{% if ansible_os_family == "Debian" -%}
+{% if ansible_facts['os_family'] == "Debian" -%}
 WSGISocketPrefix /var/run/apache2/wsgi
 {% else -%}
 WSGISocketPrefix run/wsgi

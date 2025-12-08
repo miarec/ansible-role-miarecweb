@@ -3,11 +3,12 @@
   hosts: all
   become: true
 
-  pre_tasks:
-    - set_fact:
-        python_version: "{{ lookup('env', 'MIARECWEB_PYTHON_VERSION') }}"
-
   tasks:
-    - include_tasks: python.yml
-    - include_tasks: postgresql.yml
-    - include_tasks: apache.yml
+    - name: Set python_version from environment
+      set_fact:
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
+
+    - include_tasks: tasks/python.yml
+    - include_tasks: tasks/postgresql.yml
+    - include_tasks: tasks/redis.yml
+    - include_tasks: tasks/apache.yml

@@ -20,16 +20,28 @@
     - libffi-dev
     - unixodbc-dev
     - postgresql-client
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
-# python3-packaging is required for Ansible's pip module when Python is installed from packages
-- name: install python3-packaging | Debian
+# packaging module is required for Ansible's pip module when Python is installed from packages
+- name: Install required Python packages | Debian
   package:
-    pkg: python3-packaging
+    pkg: "{{ item }}"
     state: present
+  with_items:
+    - python3-packaging
+    - python3-pip
+    - python3-venv
   when:
-    - ansible_os_family == "Debian"
+    - ansible_facts['os_family'] == "Debian"
     - not (python_install_from_source | default(false) | bool)
+
+- name: Install required Python packages | RedHat
+  command: "{{ python_install_dir }}/bin/python{{ python_version_base }} -m pip install packaging"
+  register: _pip_packaging
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - not (python_install_from_source | default(false) | bool)
+  changed_when: "'Requirement already satisfied' not in _pip_packaging.stdout"
 
 # PowerTools is required for `perl-IPC-Run`
 - name: Enable Powertools repo | RockyLinux 8
@@ -38,10 +50,10 @@
     section: powertools
     option: enabled
     value: 1
-    mode: 0644
+    mode: "0644"
   when:
-    - ansible_distribution == "Rocky"
-    - ansible_distribution_major_version == "8"
+    - ansible_facts['distribution'] == "Rocky"
+    - ansible_facts['distribution_major_version'] == "8"
 
 # CRB is required for `perl-IPC-Run`
 - name: Enable CRB repo | RockyLinux 9
@@ -50,10 +62,10 @@
     section: crb
     option: enabled
     value: 1
-    mode: 0644
+    mode: "0644"
   when:
-    - ansible_distribution == "Rocky"
-    - ansible_distribution_major_version == "9"
+    - ansible_facts['distribution'] == "Rocky"
+    - ansible_facts['distribution_major_version'] == "9"
 
 - name: install dependencies | RedHat
   package:
@@ -72,7 +84,7 @@
     - libxslt-devel
     - postgresql-devel
     - unixODBC-devel
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 # this is required for mod_wsgi install
 - name: install Additional dependencies | RHEL 8
@@ -82,4 +94,4 @@
   with_items:
     - redhat-rpm-config
   when:
-    - ansible_distribution_major_version == "8"
+    - ansible_facts['distribution_major_version'] == "8"

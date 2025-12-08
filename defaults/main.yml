@@ -1,9 +1,20 @@
 ---
 # Version of MiaRecWeb files to install
-miarecweb_version: 5.2.0.2119
+miarecweb_version: ""
 
-# The python version to install miarecweb. Caution! The python should be installed in advance
-python_version: 3.6.3
+# The python version to use for miarecweb.
+# Can be specified as:
+#   - Full version: "3.12.1" - will look for python3.12, fallback to python3
+#   - Major.minor: "3.12" - will look for python3.12, fallback to python3
+#   - Major only: "3" - will use system python3
+# If not specified or auto-detection fails, uses system python3.
+python_version: ""
+
+# Supported Python version range
+# The detected/specified version must be within this range
+python_minimum_version: "3.10"
+python_maximum_version: "3.12"
+
 # Location of the installed python files
 # When Python is installed from source (python_install_from_source: true), it is at /usr/local
 # When Python is installed from packages (default), it is at /usr

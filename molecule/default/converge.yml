@@ -8,15 +8,14 @@
     - set_fact:
         miarecweb_version: "{{ lookup('env', 'MIARECWEB_VERSION') }}"
         miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
-        python_version: "{{ lookup('env', 'MIARECWEB_PYTHON_VERSION') }}"
-
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
 
     - name: Update apt cache | Debian
       apt:
         update_cache: true
         cache_valid_time: 600
       changed_when: false
-      when: ansible_os_family == "Debian"
+      when: ansible_facts['os_family'] == "Debian"
 
     # required for miarecweb.yml - Install dependencies (requirements.txt)
     # I want to re test this, I dont ubderstand why we need system python pip
@@ -24,16 +23,7 @@
       package:
         name: python-pip
         state: present
-      when: ansible_distribution == "CentOS"
-
-    # required for miarecweb.yml - Install dependencies (requirements.txt)
-    - name: Install python3-packaging | Rockylinux 9
-      package:
-        name: python3-packaging
-        state: present
-      when:
-        - ansible_distribution == "Rocky"
-        - ansible_distribution_major_version == '9'
+      when: ansible_facts['distribution'] == "CentOS"
 
   roles:
     - role: ansible-role-miarecweb

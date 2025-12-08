@@ -1,0 +1,52 @@
+---
+# Install Python from system packages
+# Uses python_version variable (e.g., "3.12") passed from prepare.yml
+
+# Parse python_version to get major.minor (e.g., "3.12" from "3.12.1")
+- name: Python | Parse version
+  set_fact:
+    _python_major_minor: "{{ '.'.join(python_version.split('.')[:2]) }}"
+
+# Define OS-specific Python packages
+- name: Python | Define packages | RedHat
+  set_fact:
+    python3_packages:
+      - "python{{ _python_major_minor }}"
+      - "python{{ _python_major_minor }}-devel"
+      - "python{{ _python_major_minor }}-pip"
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Python | Define packages | Debian
+  set_fact:
+    python3_packages:
+      - python3
+      - python3-dev
+      - python3-venv
+  when: ansible_facts['os_family'] == "Debian"
+
+# Install EPEL for RedHat-based systems (except RHEL Enterprise itself)
+- name: Python | Install EPEL repository | RedHat
+  yum:
+    name: epel-release
+    state: present
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['distribution'] != "RedHat"
+
+# Enable Python module stream for RHEL 9+ (AppStream provides python3.12)
+- name: Python | Enable Python {{ _python_major_minor }} module | RHEL 9+
+  command: "dnf module enable python{{ _python_major_minor }} -y"
+  when:
+    - ansible_facts['distribution'] == "RedHat"
+    - ansible_facts['distribution_major_version'] | int >= 9
+  register: _python_module_enable
+  changed_when: "'Nothing to do' not in _python_module_enable.stdout"
+  failed_when: false
+
+# Install Python packages
+- name: Python | Install Python3 packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ python3_packages }}"
+

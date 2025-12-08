@@ -3,9 +3,9 @@
 - name: gather os specific variables
   include_vars: "{{ item }}"
   with_first_found:
-    - "../vars/{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml"
-    - "../vars/{{ ansible_distribution }}.yml"
-    - "../vars/{{ ansible_os_family }}.yml"
+    - "../vars/{{ ansible_facts['distribution'] }}-{{ ansible_facts['distribution_major_version'] }}.yml"
+    - "../vars/{{ ansible_facts['distribution'] }}.yml"
+    - "../vars/{{ ansible_facts['os_family'] }}.yml"
 
 
 - name: Check for miarecweb_secret variable.
@@ -18,3 +18,51 @@
     msg: Illeagal character, miarecweb_secret or miarecweb_db_password cannot contain '%'.
   when:
     - miarecweb_secret is search("%") or miarecweb_db_password is search("%")
+
+# ---------------------------------------------
+# Detect/verify python installation on this server
+# Logic:
+# - If python_version has major.minor (like 3.12 or 3.12.1), look for python3.12
+# - If python_version is just major (like 3) or empty, use python3
+# - Validate detected version is within min/max range
+# ---------------------------------------------
+- name: Detect Python version
+  when: not (python_install_from_source | default(false) | bool)
+  block:
+    # Determine target Python executable based on python_version
+    - name: Set target Python executable name
+      set_fact:
+        _python_target_exec: >-
+          {%- set parts = python_version.split('.') if python_version else [] -%}
+          {%- if parts | length >= 2 -%}
+          python{{ parts[0] }}.{{ parts[1] }}
+          {%- else -%}
+          python3
+          {%- endif -%}
+
+    # Find the Python executable
+    - name: Check if target Python executable exists
+      command: "{{ python_install_dir }}/bin/{{ _python_target_exec }} --version"
+      register: _python_version_output
+      changed_when: false
+
+    - name: Set python_version from detected version
+      set_fact:
+        python_version: "{{ _python_version_output.stdout | regex_replace('^Python\\s+', '') }}"
+
+- name: Set python_version_base fact
+  set_fact:
+    ## Translate full python_version (3.4.5) to the MAJOR.MINOR value, like "3.4"
+    python_version_base: "{{ '.'.join(python_version.split('.')[:2]) }}"
+
+# Validate Python version is within supported range
+- name: Validate Python version is within supported range
+  assert:
+    that:
+      - python_version_base is version(python_minimum_version, '>=')
+      - python_version_base is version(python_maximum_version, '<=')
+    fail_msg: >-
+      Detected Python version {{ python_version }} ({{ python_version_base }}) is outside
+      the supported range {{ python_minimum_version }} - {{ python_maximum_version }}.
+      Please install a supported Python version.
+    success_msg: "Python version {{ python_version }} is within supported range"
