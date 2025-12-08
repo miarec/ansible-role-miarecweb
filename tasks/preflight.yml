@@ -8,9 +8,14 @@
     - "../vars/{{ ansible_facts['os_family'] }}.yml"
 
 
+- name: Check for miarecweb_version variable.
+  fail:
+    msg: Parameter 'miarecweb_version' must be provided. Specify the version to install (e.g., '2024.1.0.0').
+  when: not miarecweb_version
+
 - name: Check for miarecweb_secret variable.
   fail:
-    msg: Parameters 'miarecweb_secret' must be provided.
+    msg: Parameter 'miarecweb_secret' must be provided.
   when: not miarecweb_secret
 
 - name: Check for illeagal character in secrets.
@@ -18,6 +23,128 @@
     msg: Illeagal character, miarecweb_secret or miarecweb_db_password cannot contain '%'.
   when:
     - miarecweb_secret is search("%") or miarecweb_db_password is search("%")
+
+# ---------------------------------------------
+# Validate TLS certificate files
+# ---------------------------------------------
+- name: Validate PostgreSQL TLS CA file exists
+  stat:
+    path: "{{ miarecweb_db_tls_ca_file }}"
+  register: _db_tls_ca_stat
+  when:
+    - miarecweb_db_tls | bool
+    - miarecweb_db_tls_ca_file | length > 0
+
+- name: Fail if PostgreSQL TLS CA file not found
+  fail:
+    msg: "PostgreSQL TLS CA file not found: {{ miarecweb_db_tls_ca_file }}"
+  when:
+    - miarecweb_db_tls | bool
+    - miarecweb_db_tls_ca_file | length > 0
+    - _db_tls_ca_stat.stat is defined
+    - not _db_tls_ca_stat.stat.exists
+
+- name: Validate PostgreSQL TLS client certificate file exists
+  stat:
+    path: "{{ miarecweb_db_tls_cert_file }}"
+  register: _db_tls_cert_stat
+  when:
+    - miarecweb_db_tls | bool
+    - miarecweb_db_tls_cert_file | length > 0
+
+- name: Fail if PostgreSQL TLS client certificate file not found
+  fail:
+    msg: "PostgreSQL TLS client certificate file not found: {{ miarecweb_db_tls_cert_file }}"
+  when:
+    - miarecweb_db_tls | bool
+    - miarecweb_db_tls_cert_file | length > 0
+    - _db_tls_cert_stat.stat is defined
+    - not _db_tls_cert_stat.stat.exists
+
+- name: Validate PostgreSQL TLS client key file exists
+  stat:
+    path: "{{ miarecweb_db_tls_key_file }}"
+  register: _db_tls_key_stat
+  when:
+    - miarecweb_db_tls | bool
+    - miarecweb_db_tls_key_file | length > 0
+
+- name: Fail if PostgreSQL TLS client key file not found
+  fail:
+    msg: "PostgreSQL TLS client key file not found: {{ miarecweb_db_tls_key_file }}"
+  when:
+    - miarecweb_db_tls | bool
+    - miarecweb_db_tls_key_file | length > 0
+    - _db_tls_key_stat.stat is defined
+    - not _db_tls_key_stat.stat.exists
+
+- name: Validate Redis TLS CA file exists
+  stat:
+    path: "{{ miarecweb_redis_tls_ca_file }}"
+  register: _redis_tls_ca_stat
+  when:
+    - miarecweb_redis_tls | bool
+    - miarecweb_redis_tls_ca_file | length > 0
+
+- name: Fail if Redis TLS CA file not found
+  fail:
+    msg: "Redis TLS CA file not found: {{ miarecweb_redis_tls_ca_file }}"
+  when:
+    - miarecweb_redis_tls | bool
+    - miarecweb_redis_tls_ca_file | length > 0
+    - _redis_tls_ca_stat.stat is defined
+    - not _redis_tls_ca_stat.stat.exists
+
+- name: Validate Redis TLS client certificate file exists
+  stat:
+    path: "{{ miarecweb_redis_tls_cert_file }}"
+  register: _redis_tls_cert_stat
+  when:
+    - miarecweb_redis_tls | bool
+    - miarecweb_redis_tls_cert_file | length > 0
+
+- name: Fail if Redis TLS client certificate file not found
+  fail:
+    msg: "Redis TLS client certificate file not found: {{ miarecweb_redis_tls_cert_file }}"
+  when:
+    - miarecweb_redis_tls | bool
+    - miarecweb_redis_tls_cert_file | length > 0
+    - _redis_tls_cert_stat.stat is defined
+    - not _redis_tls_cert_stat.stat.exists
+
+- name: Validate Redis TLS client key file exists
+  stat:
+    path: "{{ miarecweb_redis_tls_key_file }}"
+  register: _redis_tls_key_stat
+  when:
+    - miarecweb_redis_tls | bool
+    - miarecweb_redis_tls_key_file | length > 0
+
+- name: Fail if Redis TLS client key file not found
+  fail:
+    msg: "Redis TLS client key file not found: {{ miarecweb_redis_tls_key_file }}"
+  when:
+    - miarecweb_redis_tls | bool
+    - miarecweb_redis_tls_key_file | length > 0
+    - _redis_tls_key_stat.stat is defined
+    - not _redis_tls_key_stat.stat.exists
+
+# ---------------------------------------------
+# Validate TLS configuration requirements
+# When TLS is enabled with client certificates, the celery user
+# and apache need to read the private key files. Running as root
+# is not supported - a dedicated user/group must be configured.
+# ---------------------------------------------
+- name: Check TLS configuration requires non-root celery user
+  fail:
+    msg: >-
+      TLS with client certificates requires a non-root celery user.
+      Set 'miarecweb_celery_user' to a dedicated user (e.g., 'celery')
+      and 'miarec_bin_group' to a shared group that can read the certificate files.
+  when:
+    - (miarecweb_db_tls | bool and miarecweb_db_tls_key_file | length > 0) or
+      (miarecweb_redis_tls | bool and miarecweb_redis_tls_key_file | length > 0)
+    - miarecweb_celery_user == 'root'
 
 # ---------------------------------------------
 # Detect/verify python installation on this server

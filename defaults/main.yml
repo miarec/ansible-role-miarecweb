@@ -46,6 +46,22 @@ miarecweb_db_pool_recycle: 3600
 miarecweb_db_pool_use_lifo: true
 
 # -----------------------------
+# PostgreSQL TLS settings
+# -----------------------------
+miarecweb_db_tls: false
+miarecweb_db_tls_sslmode: verify-ca
+# TLS mode options:
+#   disable - Plain TCP, TLS not requested
+#   allow - Try plain TCP first, then TLS if rejected
+#   prefer - Try TLS first, fall back to plain TCP (default if sslmode not set)
+#   require - TLS required, no server cert validation
+#   verify-ca - TLS required, validate server cert against CA
+#   verify-full - TLS required, validate server cert and hostname
+miarecweb_db_tls_ca_file: ""       # CA certificate to validate server
+miarecweb_db_tls_cert_file: ""     # Client certificate for mTLS
+miarecweb_db_tls_key_file: ""      # Client private key for mTLS
+
+# -----------------------------
 # Redis settings
 # -----------------------------
 miarecweb_redis_host: 127.0.0.1
@@ -56,6 +72,16 @@ miarecweb_redis_socket_connect_timeout: 60
 miarecweb_redis_socket_keepalive: true
 miarecweb_redis_health_check_interval: 300
 miarecweb_redis_pool_recycle: 3600
+
+# -----------------------------
+# Redis TLS settings
+# -----------------------------
+miarecweb_redis_tls: false
+miarecweb_redis_tls_ca_file: ""           # CA certificate to validate server
+miarecweb_redis_tls_cert_file: ""         # Client certificate for mTLS
+miarecweb_redis_tls_key_file: ""          # Client private key for mTLS
+miarecweb_redis_tls_cert_reqs: required   # required, optional, or none
+miarecweb_redis_tls_check_hostname: false # Verify server hostname
 
 # -----------------------------
 # mod_wsgi settings

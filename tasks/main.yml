@@ -21,6 +21,41 @@
   when: miarec_bin_group != 'root'
 
 # --------------------------------------------------
+# Configure TLS certificate permissions
+# When TLS is enabled with client certificates, ensure the
+# certificate files are readable by the miarec_bin_group
+# --------------------------------------------------
+- name: Set group ownership on TLS certificate files
+  file:
+    path: "{{ item }}"
+    group: "{{ miarec_bin_group }}"
+    mode: "u=rw,g=r,o="
+  loop: "{{ _tls_key_files | select | list }}"
+  vars:
+    _tls_key_files:
+      - "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file | length > 0) else '' }}"
+      - "{{ miarecweb_redis_tls_key_file if (miarecweb_redis_tls | bool and miarecweb_redis_tls_key_file | length > 0) else '' }}"
+  when:
+    - miarec_bin_group != 'root'
+    - _tls_key_files | select | list | length > 0
+  become: true
+
+- name: Set group ownership on TLS certificate directory
+  file:
+    path: "{{ item | dirname }}"
+    group: "{{ miarec_bin_group }}"
+    mode: "u=rwx,g=rx,o="
+  loop: "{{ _tls_key_files | select | list }}"
+  vars:
+    _tls_key_files:
+      - "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file | length > 0) else '' }}"
+      - "{{ miarecweb_redis_tls_key_file if (miarecweb_redis_tls | bool and miarecweb_redis_tls_key_file | length > 0) else '' }}"
+  when:
+    - miarec_bin_group != 'root'
+    - _tls_key_files | select | list | length > 0
+  become: true
+
+# --------------------------------------------------
 # Initialize the installation/upgrade process
 # --------------------------------------------------
 - name: Initialize the deploy root and gather facts

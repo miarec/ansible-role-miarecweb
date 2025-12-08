@@ -1,0 +1,48 @@
+---
+# Install and configure Apache
+- name: Apache | Install Apache package | Debian
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  with_items:
+    - apache2
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Apache | Enable a2enmod rewrite module | Debian
+  command: a2enmod rewrite
+  changed_when: false
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Apache | Restart Apache service | Debian
+  service:
+    name: apache2
+    state: restarted
+    enabled: true
+  when: ansible_facts['os_family'] == "Debian"
+
+# Install apache on CentOS7, Rocky8-9, RHEL8-9
+- name: Apache | Install Apache | RedHat
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - httpd
+    - httpd-devel
+    - mod_ssl
+  when: ansible_facts['os_family'] == "RedHat"
+
+# Configure Apache
+- name: Apache | Ensure httpd certs are installed | RHEL 8+
+  command: /usr/libexec/httpd-ssl-gencerts
+  changed_when: false
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['distribution_major_version'] | int >= 8
+
+- name: Apache | Restart and Enable Apache service | RedHat
+  service:
+    name: httpd
+    state: started
+    enabled: true
+  when: ansible_facts['os_family'] == "RedHat"
