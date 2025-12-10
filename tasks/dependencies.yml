@@ -20,6 +20,7 @@
     - libffi-dev
     - unixodbc-dev
     - postgresql-client
+    - libsndfile1
   when: ansible_facts['os_family'] == "Debian"
 
 # packaging module is required for Ansible's pip module when Python is installed from packages
@@ -84,6 +85,7 @@
     - libxslt-devel
     - postgresql-devel
     - unixODBC-devel
+    - libsndfile
   when: ansible_facts['os_family'] == "RedHat"
 
 # this is required for mod_wsgi install

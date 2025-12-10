@@ -1,3 +1,4 @@
+import json
 import os
 import testinfra.utils.ansible_runner
 
@@ -61,6 +62,21 @@ def test_socket(host):
     for socket in sockets:
         s = host.socket(socket)
         assert s.is_listening
+
+
+def test_health_endpoint(host):
+    result = host.run("curl -fsS http://localhost/health")
+    assert result.rc == 0, f"Health endpoint not reachable: {result.stderr}"
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise AssertionError(f"Health endpoint response is not valid JSON: {exc}\nResponse: {result.stdout}")
+
+    assert payload.get("status") == "ok", f"Unexpected overall status: {payload}"
+    assert payload.get("postgresql") == "ok", f"Unexpected PostgreSQL status: {payload}"
+    assert payload.get("redis") == "ok", f"Unexpected Redis status: {payload}"
+
 
 def test_script(host):
     result = host.run("/opt/miarecweb/current/pyenv/bin/python -m miarecweb.scripts.create_root_user -u admin -p admin")

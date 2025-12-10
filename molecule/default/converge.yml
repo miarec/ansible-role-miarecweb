@@ -17,14 +17,6 @@
       changed_when: false
       when: ansible_facts['os_family'] == "Debian"
 
-    # required for miarecweb.yml - Install dependencies (requirements.txt)
-    # I want to re test this, I dont ubderstand why we need system python pip
-    - name: Install python-pip | CentOS
-      package:
-        name: python-pip
-        state: present
-      when: ansible_facts['distribution'] == "CentOS"
-
   roles:
     - role: ansible-role-miarecweb
       tags:

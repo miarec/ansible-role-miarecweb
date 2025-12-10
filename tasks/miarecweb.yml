@@ -182,6 +182,70 @@
     - reload celeryd
     - reload celerybeat
 
+# Configure PostgreSQL TLS settings
+- name: Configure DATABASE_SSL_PARAMS in production.ini
+  lineinfile:
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
+    regexp: '^DATABASE_SSL_PARAMS\s*='
+    line: "DATABASE_SSL_PARAMS = {{ _db_ssl_params }}"
+  vars:
+    _db_ssl_params: >-
+      {%- set params = [] -%}
+      {%- if miarecweb_db_tls | bool -%}
+        {%- set params = params + ['sslmode=' + miarecweb_db_tls_sslmode] -%}
+        {%- if miarecweb_db_tls_ca_file -%}
+          {%- set params = params + ['sslrootcert=' + miarecweb_db_tls_ca_file] -%}
+        {%- endif -%}
+        {%- if miarecweb_db_tls_cert_file -%}
+          {%- set params = params + ['sslcert=' + miarecweb_db_tls_cert_file] -%}
+        {%- endif -%}
+        {%- if miarecweb_db_tls_key_file -%}
+          {%- set params = params + ['sslkey=' + miarecweb_db_tls_key_file] -%}
+        {%- endif -%}
+      {%- endif -%}
+      {{ params | join('&') }}
+  notify:
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
+
+# Configure Redis TLS settings
+- name: Configure REDIS_SCHEMA in production.ini
+  lineinfile:
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
+    regexp: '^REDIS_SCHEMA\s*='
+    line: "REDIS_SCHEMA = {{ 'rediss' if miarecweb_redis_tls | bool else 'redis' }}"
+  notify:
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
+
+- name: Configure REDIS_SSL_PARAMS in production.ini
+  lineinfile:
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
+    regexp: '^REDIS_SSL_PARAMS\s*='
+    line: "REDIS_SSL_PARAMS = {{ _redis_ssl_params }}"
+  vars:
+    _redis_ssl_params: >-
+      {%- set params = [] -%}
+      {%- if miarecweb_redis_tls | bool -%}
+        {%- set params = params + ['ssl_cert_reqs=' + miarecweb_redis_tls_cert_reqs] -%}
+        {%- set params = params + ['ssl_check_hostname=' + (miarecweb_redis_tls_check_hostname | string)] -%}
+        {%- if miarecweb_redis_tls_ca_file -%}
+          {%- set params = params + ['ssl_ca_certs=' + miarecweb_redis_tls_ca_file] -%}
+        {%- endif -%}
+        {%- if miarecweb_redis_tls_cert_file -%}
+          {%- set params = params + ['ssl_certfile=' + miarecweb_redis_tls_cert_file] -%}
+        {%- endif -%}
+        {%- if miarecweb_redis_tls_key_file -%}
+          {%- set params = params + ['ssl_keyfile=' + miarecweb_redis_tls_key_file] -%}
+        {%- endif -%}
+      {%- endif -%}
+      {{ params | join('&') }}
+  notify:
+    - reload apache
+    - reload celeryd
+    - reload celerybeat
 
 - name: Configure secrets in production.ini file
   lineinfile:

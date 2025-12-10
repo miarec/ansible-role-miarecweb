@@ -1,25 +1,6 @@
 ---
 # Install Redis from system packages (based on ansible-role-redis)
 
-# Install EPEL for CentOS (required for redis package)
-- name: Redis | Install EPEL | CentOS
-  package:
-    name: epel-release
-    state: present
-  when: ansible_facts['distribution'] == "CentOS"
-
-# Install EPEL for RedHat 7
-- name: Redis | Install EPEL | RedHat 7
-  yum_repository:
-    name: epel
-    description: EPEL
-    baseurl: "https://dl.fedoraproject.org/pub/archive/epel/7/x86_64/"
-    gpgkey: "http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_facts['distribution_major_version'] }}"
-    enabled: true
-  when:
-    - ansible_facts['distribution'] == "RedHat"
-    - ansible_facts['distribution_major_version'] == "7"
-
 # Install Redis package
 - name: Redis | Install Redis package
   package:

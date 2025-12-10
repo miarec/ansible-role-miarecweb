@@ -1,6 +1,11 @@
 ---
 - name: Check if database layout is up-to-date
   command: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/alembic -c {{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini current"
+  environment:
+    PGSSLMODE: "{{ miarecweb_db_tls_sslmode if miarecweb_db_tls | bool else 'disable' }}"
+    PGSSLROOTCERT: "{{ miarecweb_db_tls_ca_file if (miarecweb_db_tls | bool and miarecweb_db_tls_ca_file) else '' }}"
+    PGSSLCERT: "{{ miarecweb_db_tls_cert_file if (miarecweb_db_tls | bool and miarecweb_db_tls_cert_file) else '' }}"
+    PGSSLKEY: "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file) else '' }}"
   register: _alembic_current_revision
   changed_when: false
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
@@ -25,6 +30,11 @@
 
 - name: Upgrade database layout   # noqa: no-changed-when
   command: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/alembic -c {{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini upgrade heads"
+  environment:
+    PGSSLMODE: "{{ miarecweb_db_tls_sslmode if miarecweb_db_tls | bool else 'disable' }}"
+    PGSSLROOTCERT: "{{ miarecweb_db_tls_ca_file if (miarecweb_db_tls | bool and miarecweb_db_tls_ca_file) else '' }}"
+    PGSSLCERT: "{{ miarecweb_db_tls_cert_file if (miarecweb_db_tls | bool and miarecweb_db_tls_cert_file) else '' }}"
+    PGSSLKEY: "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file) else '' }}"
   register: _alembic_upgrade_head
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
@@ -43,5 +53,9 @@
     PGDATABASE: "{{ miarecweb_db_name }}"
     PGHOST: "{{ miarecweb_db_host }}"
     PGPORT: "{{ miarecweb_db_port }}"
+    PGSSLMODE: "{{ miarecweb_db_tls_sslmode if miarecweb_db_tls | bool else 'disable' }}"
+    PGSSLROOTCERT: "{{ miarecweb_db_tls_ca_file if (miarecweb_db_tls | bool and miarecweb_db_tls_ca_file) else '' }}"
+    PGSSLCERT: "{{ miarecweb_db_tls_cert_file if (miarecweb_db_tls | bool and miarecweb_db_tls_cert_file) else '' }}"
+    PGSSLKEY: "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file) else '' }}"
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
