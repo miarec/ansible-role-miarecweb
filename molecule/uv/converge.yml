@@ -5,6 +5,7 @@
 
   pre_tasks:
     - name: Set uv variables from environment
+      tags: always
       set_fact:
         miarecweb_install_uv: true
         uv_version: "{{ lookup('env', 'UV_VERSION') }}"
@@ -13,6 +14,6 @@
         uv_verify_checksum: true
 
   roles:
-    - role: ansible-role-miarecweb
+    - role: "{{ playbook_dir }}/../.." # noqa: role-name[path]
       tags:
         - miarecweb

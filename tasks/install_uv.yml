@@ -5,7 +5,8 @@
       - uv_version is string
       - uv_version | length > 0
       - not (uv_version is match('^v'))
-    fail_msg: "uv_version must be set and must not start with 'v' (expected format: '0.12.3')."
+      - uv_version is match('^\\d+\\.\\d+\\.\\d+$')
+    fail_msg: "uv_version must be set and match X.Y.Z (example: '0.12.3') without a leading 'v'."
   tags: uv
 
 - name: uv | Determine architecture
@@ -54,8 +55,16 @@
 
 - name: uv | Extract installed uv version
   ansible.builtin.set_fact:
-    _uv_installed_version: "{{ _uv_version_cmd.stdout | ansible.builtin.regex_search('(\\d+\\.\\d+\\.\\d+)', output_format='\\1') }}"
+    _uv_installed_version: "{{ _uv_version_cmd.stdout | ansible.builtin.regex_search('(\\d+\\.\\d+\\.\\d+)', output_format='\\1') | default('') }}"
   when: _uv_binaries_stat.stat.exists
+  tags: uv
+
+- name: uv | Fail if version could not be extracted
+  ansible.builtin.fail:
+    msg: "uv binary exists but version could not be parsed from output: {{ _uv_version_cmd.stdout | default('') }}"
+  when:
+    - _uv_binaries_stat.stat.exists
+    - _uv_installed_version == ''
   tags: uv
 
 - name: uv | Determine whether installation is needed
@@ -100,6 +109,7 @@
       register: _uv_checksum_slurp
       when: uv_verify_checksum | bool
 
+    # GitHub .sha256 file format: "<hash>  <filename>" - we extract only the 64-char hex hash
     - name: uv | Parse expected checksum
       ansible.builtin.set_fact:
         _uv_expected_sha256: "{{ ((_uv_checksum_slurp.content | b64decode) | ansible.builtin.regex_search('(?i)([0-9a-f]{64})', output_format='\\1') | default('')) | lower }}"

@@ -55,6 +55,15 @@ MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 - `MOLECULE_MIARECWEB_SECRET`: Secret key (default: secret)
 - `MOLECULE_PYTHON_VERSION`: Python version to install/use (default: 3.12)
 - `MOLECULE_ANSIBLE_VERBOSITY`: 0-3 (default: 0)
+- `MOLECULE_EPHEMERAL_DIRECTORY`: Custom path for molecule state (required for parallel runs)
+
+### Running Tests in Parallel
+To run the same scenario on multiple distros in parallel, set unique `MOLECULE_EPHEMERAL_DIRECTORY`:
+```bash
+MOLECULE_DISTRO=ubuntu2404 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-ubuntu2404" uv run molecule test -s default &
+MOLECULE_DISTRO=rockylinux9 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-rockylinux9" uv run molecule test -s default &
+wait
+```
 
 ### Ansible Version
 Ansible is pinned to 9.x (ansible-core 2.16) in `pyproject.toml` to support EL8 distros which ship with Python 3.6. All distros use the same test command.
