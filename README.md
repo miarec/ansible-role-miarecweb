@@ -99,8 +99,67 @@ MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 |----------------|-----------------|
 | Ubuntu 22.04   | `ubuntu2204`    |
 | Ubuntu 24.04   | `ubuntu2404`    |
+| Rocky Linux 8  | `rockylinux8`   |
 | Rocky Linux 9  | `rockylinux9`   |
+| RHEL 8         | `rhel8`         |
 | RHEL 9         | `rhel9`         |
+
+### Testing on RHEL 8 / Rocky Linux 8 / AlmaLinux 8
+
+EL8 distributions require special handling due to Python version incompatibilities with modern Ansible.
+
+#### The Problem
+
+EL8 ships with Python 3.6 as the system Python. This creates a fundamental incompatibility:
+
+1. **ansible-core 2.17+ requires Python 3.7+** on managed nodes to execute modules
+2. **The `dnf` Ansible module** needs `python3-dnf` bindings, which only exist for system Python
+3. **No `python3.12-dnf` package exists** - dnf bindings are only packaged for system Python
+
+When Ansible runs a module like `dnf`, it transfers Python code to the target and executes it
+using the configured interpreter. The module does `import dnf`, which fails if using Python 3.12
+because dnf bindings aren't installed for that version.
+
+#### Rejected Solutions
+
+We evaluated several approaches but rejected them to keep the role code clean:
+
+| Approach | Why Rejected |
+|----------|--------------|
+| Set `ansible_python_interpreter` per-task | Adds noise to role code; requires conditional logic for EL8 |
+| Use `command: dnf` instead of module | Not idempotent; poor Ansible practice |
+| Install `python3.12-dnf` in Docker images | Package doesn't exist on EL8 |
+
+#### Solution: Pin Ansible to 9.x
+
+We pin Ansible to `<10.0` in `pyproject.toml` to use ansible-core 2.16 (the last version
+supporting Python 3.6 on managed nodes). This allows all distros including EL8 to use
+the same test command:
+
+```bash
+# All distros use the same command
+MOLECULE_DISTRO=rockylinux8 uv run molecule test
+MOLECULE_DISTRO=rhel8 uv run molecule test
+```
+
+**Note:** RHEL 8 reaches end-of-life in 2029. Once EL8 support is dropped, we can
+remove the `<10.0` pin and upgrade to newer Ansible versions.
+
+#### Expected Warning
+
+You'll see this warning which can be safely ignored:
+```
+[WARNING]: Collection community.docker does not support Ansible version 2.16.15
+```
+
+This is just metadata validation - the actual module code is compatible.
+
+#### References
+
+- [Jeff Geerling: Newer versions of Ansible don't work with RHEL 8](https://www.jeffgeerling.com/blog/2024/newer-versions-ansible-dont-work-rhel-8)
+- [Ansible Forum: Issue with Ansible on Rocky Linux 8.10](https://forum.ansible.com/t/issue-with-ansible-on-rocky-linux-8-10-python-3-12-future-feature-annotations-is-not-defined/41117/2)
+- [GitHub Issue #83597: Issue with RHEL 8 system Python for DNF](https://github.com/ansible/ansible/issues/83597)
+- [GitHub Issue #84560: DNF package don't use ansible_python_interpreter](https://github.com/ansible/ansible/issues/84560)
 
 ### Linting
 
