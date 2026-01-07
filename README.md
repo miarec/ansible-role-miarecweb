@@ -102,6 +102,25 @@ MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 | Rocky Linux 9  | `rockylinux9`   |
 | RHEL 9         | `rhel9`         |
 
+### Running Tests in Parallel
+
+By default, Molecule uses a shared ephemeral directory, which prevents running the same
+scenario with different `MOLECULE_DISTRO` values in parallel. To run tests in parallel,
+set a unique `MOLECULE_EPHEMERAL_DIRECTORY` for each distro:
+
+```bash
+# Run default scenario on both distros in parallel
+MOLECULE_DISTRO=ubuntu2404 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-ubuntu2404" uv run molecule test -s default &
+MOLECULE_DISTRO=rockylinux9 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-rockylinux9" uv run molecule test -s default &
+wait
+```
+
+This works because each process gets its own inventory and state files, avoiding conflicts.
+
+**References:**
+- [Molecule CI Documentation](https://docs.ansible.com/projects/molecule/ci/)
+- [GitHub Issue #1272 - Parallel testing](https://github.com/ansible/molecule/issues/1272)
+
 ### Linting
 
 ```bash

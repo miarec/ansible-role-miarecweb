@@ -113,6 +113,25 @@ miarecweb_force_https: true
 
 
 # -----------------------------
+# uv installation (optional)
+# -----------------------------
+# Install uv binaries from official GitHub releases (no remote install scripts)
+miarecweb_install_uv: true
+
+# Version of uv to install (format: "0.12.3", no leading "v")
+uv_version: "0.9.22"
+
+# Directory to install uv binaries to
+uv_install_dir: /usr/local/bin
+
+# Base URL for downloading uv binaries from
+uv_download_base_url: "https://github.com/astral-sh/uv/releases/download"
+
+# When enabled, download and validate per-archive SHA256 checksum (fails play on mismatch or missing checksum)
+uv_verify_checksum: true
+
+
+# -----------------------------
 # MiaRec user group
 # Multiple processes (miarec, apache, celery) require "write" access to the same data (recording files)
 # - miarec recorder creates audio files

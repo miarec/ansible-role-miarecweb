@@ -1,0 +1,37 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: collections.yml
+driver:
+  name: docker
+platforms:
+  - name: miarecweb-${MOLECULE_DISTRO:-ubuntu2404}-uv-upgrade
+    image: ghcr.io/miarec/${MOLECULE_DISTRO:-ubuntu2404}-systemd:latest
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+    prepare: prepare.yml
+  options:
+    tags: uv
+  env:
+    ANSIBLE_VERBOSITY: ${MOLECULE_ANSIBLE_VERBOSITY:-0}
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/../
+    UV_OLD_VERSION: ${MOLECULE_UV_OLD_VERSION:-0.9.21}
+    UV_VERSION: ${MOLECULE_UV_VERSION:-0.9.22}
+    UV_INSTALL_DIR: ${MOLECULE_UV_INSTALL_DIR:-/usr/local/bin}
+
+verifier:
+  name: testinfra
+  options:
+    s: true
+    verbose: true
+

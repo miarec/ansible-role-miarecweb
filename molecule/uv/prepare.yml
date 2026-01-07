@@ -1,0 +1,7 @@
+---
+- name: Prepare (uv only)
+  hosts: all
+  become: true
+
+  tasks: []
+

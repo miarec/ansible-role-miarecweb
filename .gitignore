@@ -2,3 +2,4 @@
 **/__pycache__/
 /.venv/
 /.ansible/
+/.claude/settings.local.json

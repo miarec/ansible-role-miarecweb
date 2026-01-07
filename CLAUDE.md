@@ -55,6 +55,15 @@ MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 - `MOLECULE_MIARECWEB_SECRET`: Secret key (default: secret)
 - `MOLECULE_PYTHON_VERSION`: Python version to install/use (default: 3.12)
 - `MOLECULE_ANSIBLE_VERBOSITY`: 0-3 (default: 0)
+- `MOLECULE_EPHEMERAL_DIRECTORY`: Custom path for molecule state (required for parallel runs)
+
+### Running Tests in Parallel
+To run the same scenario on multiple distros in parallel, set unique `MOLECULE_EPHEMERAL_DIRECTORY`:
+```bash
+MOLECULE_DISTRO=ubuntu2404 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-ubuntu2404" uv run molecule test -s default &
+MOLECULE_DISTRO=rockylinux9 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-rockylinux9" uv run molecule test -s default &
+wait
+```
 
 ## Role Architecture
 
@@ -107,3 +116,23 @@ Multi-server deployment:
 - `miarecweb_install_celeryd`: Enable for worker servers only
 - `miarecweb_install_celerybeat`: Enable on single server only (scheduler)
 - `miarecweb_upgrade_db`: Run once per cluster when upgrading multiple servers
+
+## Agent Guidelines
+
+### Prefer simple, explicit logic
+- Do keep Jinja expressions short and direct (prefer one-line `set_fact` when readable).
+- Do keep checks minimal and aligned to requirements (avoid extra “nice to have” checks unless requested).
+- Don’t add “input cleanup” transforms (quote stripping, URL trimming, etc.) unless the spec explicitly requires it; Ansible/YAML already normalizes common quoting.
+
+### Don’t hide failures
+- Do guard commands with `when:` (e.g., only run `uv --version` if the binary exists).
+- Don’t use `failed_when: false` to suppress unexpected errors; let genuine failures fail the play.
+
+### Regex in YAML/Jinja: escape carefully
+- Do prefer `regex_search(..., output_format='\\1')` when extracting a version; it’s clear and works with noisy outputs like `uv 0.8.22 (Homebrew ...)`.
+- Don’t “over-escape” regex patterns: in YAML single-quoted strings, a single backslash is usually correct (e.g., `\\d` inside the YAML string becomes `\d` in the regex engine).
+- When a regex is critical, verify it with a tiny playbook before wiring it into role logic.
+
+### Use `default()` only when it prevents real runtime errors
+- Do use `| default('')` (or similar) when a filter would otherwise crash on `None`/undefined (e.g., `lower` on a missing regex match, cleanup blocks where vars may be unset).
+- Don’t use `default()` as a general habit on values that are always present; it obscures real problems.
