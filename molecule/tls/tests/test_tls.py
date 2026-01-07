@@ -117,7 +117,7 @@ def test_services(host):
 
 def test_health_endpoint(host):
     """Verify /health endpoint returns healthy status for dependencies."""
-    result = host.run("curl -sS -w '\\n%{http_code}' http://localhost/health")
+    result = host.run("curl -sSLk -w '\\n%{http_code}' http://localhost/health")
     assert result.rc == 0, f"Health endpoint curl failed (rc={result.rc}): {result.stderr}"
 
     output_lines = result.stdout.splitlines()

@@ -65,7 +65,7 @@ def test_socket(host):
 
 
 def test_health_endpoint(host):
-    result = host.run("curl -fsS http://localhost/health")
+    result = host.run("curl -fsSLk http://localhost/health")
     assert result.rc == 0, f"Health endpoint not reachable: {result.stderr}"
 
     try:
