@@ -29,20 +29,49 @@ jobs:
         run: uv run ansible-lint
 
   test:
-    name: molecule
+    name: molecule (${{ matrix.scenario }}, ${{ matrix.distro }})
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - distro: ubuntu2204
+          # default scenario - all distros
+          - scenario: default
+            distro: ubuntu2204
             python_version: "3"
-          - distro: ubuntu2404
+          - scenario: default
+            distro: ubuntu2404
             python_version: "3"
-          - distro: rockylinux9
+          - scenario: default
+            distro: rockylinux9
             python_version: "3.12"
-          - distro: rhel9
+          - scenario: default
+            distro: rhel9
             python_version: "3.12"
+          # tls scenario - all distros
+          - scenario: tls
+            distro: ubuntu2204
+            python_version: "3"
+          - scenario: tls
+            distro: ubuntu2404
+            python_version: "3"
+          - scenario: tls
+            distro: rockylinux9
+            python_version: "3.12"
+          - scenario: tls
+            distro: rhel9
+            python_version: "3.12"
+          # uv scenario - ubuntu + rocky
+          - scenario: uv
+            distro: ubuntu2404
+            python_version: "3"
+          - scenario: uv
+            distro: rockylinux9
+            python_version: "3.12"
+          # uv_upgrade scenario - single distro
+          - scenario: uv_upgrade
+            distro: ubuntu2404
+            python_version: "3"
 
     steps:
       - name: Check out the Repository
@@ -52,7 +81,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Run molecule tests
-        run: uv run molecule test
+        run: uv run molecule test -s ${{ matrix.scenario }}
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
