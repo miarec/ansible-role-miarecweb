@@ -5,6 +5,7 @@
 
   pre_tasks:
     - name: Set uv variables for old version installation
+      tags: always
       set_fact:
         miarecweb_install_uv: true
         uv_version: "{{ lookup('env', 'UV_OLD_VERSION') }}"
