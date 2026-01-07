@@ -11,6 +11,14 @@
 - import_tasks: dependencies.yml
   become: true
 
+# ---------------------------------------------
+# Install uv (optional, tagged)
+# ---------------------------------------------
+- import_tasks: install_uv.yml
+  when: miarecweb_install_uv | bool
+  tags: uv
+  become: true
+
 # --------------------------------------------------
 # Create "miarec" group if necesasry
 # --------------------------------------------------

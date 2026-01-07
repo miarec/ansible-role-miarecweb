@@ -1,0 +1,19 @@
+---
+- name: Converge (uv upgrade)
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Set uv variables from environment
+      set_fact:
+        miarecweb_install_uv: true
+        uv_version: "{{ lookup('env', 'UV_VERSION') }}"
+        uv_install_dir: "{{ lookup('env', 'UV_INSTALL_DIR') }}"
+        uv_download_base_url: "https://github.com/astral-sh/uv/releases/download"
+        uv_verify_checksum: true
+
+  roles:
+    - role: ansible-role-miarecweb
+      tags:
+        - miarecweb
+
