@@ -49,12 +49,12 @@
 
 
 - name: Install mod_wsgi python package
-  pip:
-    name: mod_wsgi
-    version: "{{ mod_wsgi_version }}"
-    executable: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip"
-    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
-    umask: "0022"
+  ansible.builtin.shell:
+    cmd: >-
+      umask 0022 &&
+      {{ uv_install_dir }}/uv pip install mod_wsgi=={{ mod_wsgi_version }}
+      --python {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/python
+    creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/mod_wsgi"
 
 
 - name: Get mod_wsgi module location

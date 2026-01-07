@@ -11,7 +11,7 @@ Migrate virtual environment creation and miarecweb package installation from pip
 
 ## Tasks
 
-- [ ] **Task 1.1: Replace venv creation task (lines 68-72)**
+- [x] **Task 1.1: Replace venv creation task (lines 68-72)** (completed 2026-01-07)
   - Current: `python -m venv PATH`
   - New: `uv venv --python VERSION --no-python-downloads PATH`
   - Command:
@@ -27,15 +27,15 @@ Migrate virtual environment creation and miarecweb package installation from pip
         creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
     ```
 
-- [ ] **Task 1.2: Remove pip upgrade task (lines 74-79)**
+- [x] **Task 1.2: Remove pip upgrade task (lines 74-79)** (completed 2026-01-07)
   - Delete "Upgrade PIP and setuptools" task entirely
   - Rationale: UV handles package management internally, no need to upgrade pip/setuptools
 
-- [ ] **Task 1.3: Remove requirements.txt task (lines 81-89)**
+- [x] **Task 1.3: Remove requirements.txt task (lines 81-89)** (completed 2026-01-07)
   - Delete "Install dependencies (requirements.txt)" task entirely
   - Rationale: `uv pip install -e .` reads dependencies from pyproject.toml/setup.py
 
-- [ ] **Task 1.4: Replace miarecweb install task (lines 91-96)**
+- [x] **Task 1.4: Replace miarecweb install task (lines 91-96)** (completed 2026-01-07)
   - Current: `pip install -e .`
   - New: `uv pip install -e . --python PATH`
   - Remove `environment: PATH` block (not needed for psycopg)

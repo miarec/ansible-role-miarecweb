@@ -11,7 +11,7 @@ Migrate mod_wsgi installation from Ansible pip module to UV in `tasks/apache.yml
 
 ## Tasks
 
-- [ ] **Task 2.1: Replace mod_wsgi install task (lines 51-57)**
+- [x] **Task 2.1: Replace mod_wsgi install task (lines 51-57)** (completed 2026-01-07)
   - Current: Ansible `pip` module with `executable:` parameter
   - New: Shell command with `uv pip install`
   - Keep version pinning

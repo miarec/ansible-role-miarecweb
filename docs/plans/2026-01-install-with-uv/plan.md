@@ -227,13 +227,13 @@ No changes needed. Ansible task output naturally shows UV commands and their res
 
 ### 3.1 Progress
 
-- [ ] Phase 1: Replace pip with UV in miarecweb.yml
-  - [ ] Task 1.1: Replace venv creation task
-  - [ ] Task 1.2: Remove pip upgrade task
-  - [ ] Task 1.3: Remove requirements.txt task
-  - [ ] Task 1.4: Replace miarecweb install task
-- [ ] Phase 2: Replace pip with UV in apache.yml
-  - [ ] Task 2.1: Replace mod_wsgi install task
+- [x] Phase 1: Replace pip with UV in miarecweb.yml (completed 2026-01-07)
+  - [x] Task 1.1: Replace venv creation task (completed 2026-01-07)
+  - [x] Task 1.2: Remove pip upgrade task (completed 2026-01-07)
+  - [x] Task 1.3: Remove requirements.txt task (completed 2026-01-07)
+  - [x] Task 1.4: Replace miarecweb install task (completed 2026-01-07)
+- [x] Phase 2: Replace pip with UV in apache.yml (completed 2026-01-07)
+  - [x] Task 2.1: Replace mod_wsgi install task (completed 2026-01-07)
 
 ### 3.2 Decision Log
 

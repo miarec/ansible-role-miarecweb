@@ -66,33 +66,22 @@
 # Python virtual environment
 # --------------------------------------------------
 - name: Create python virtual environment
-  shell:
-    cmd: "umask 0022 && {{ python_install_dir }}/bin/python{{ python_version_base }} -m venv {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
+  ansible.builtin.shell:
+    cmd: >-
+      umask 0022 &&
+      {{ uv_install_dir }}/uv venv
+      --python {{ python_version_base }}
+      --no-python-downloads
+      {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv
     creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv"
-  register: create_pyenv
-
-- name: Upgrade PIP and setuptools    # noqa: no-handler
-  shell:
-    cmd: "umask 0022 && {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/python -m pip install --upgrade pip setuptools"
-    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
-  changed_when: true
-  when: create_pyenv.changed
-
-- name: Install dependencies (requirements.txt)
-  pip:
-    requirements: requirements.txt
-    executable: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip"
-    chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
-    umask: "0022"
-  environment:
-    # We need to add 'pg_config' to PATH. Otherwise psycopg2 build fails
-    PATH: "{{ postgresql_bin_directory }}:{{ ansible_env.PATH }}"
 
 - name: Install MiaRecWeb
-  shell:
-    cmd: "umask 0022 && {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/pip install -e ."
+  ansible.builtin.shell:
+    cmd: >-
+      umask 0022 &&
+      {{ uv_install_dir }}/uv pip install -e .
+      --python {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/python
     chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
-    # Modern pip creates .dist-info directory instead of .egg-link
     creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"
 
 
