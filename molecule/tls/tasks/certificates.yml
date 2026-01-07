@@ -1,0 +1,105 @@
+---
+# Generate TLS certificates for PostgreSQL and Redis testing
+# - CA and client certificates in /etc/miarecweb/tls/
+# - Server certificates are generated in postgresql_tls.yml and redis_tls.yml
+#   after the respective services are installed (so postgres/redis users exist)
+
+- name: Install OpenSSL
+  package:
+    name: openssl
+    state: present
+
+# ============ Create Directories ============
+- name: Create miarecweb TLS directory
+  file:
+    path: /etc/miarecweb/tls
+    state: directory
+    owner: root
+    group: miarec
+    mode: "0750"
+
+# ============ Generate CA (shared) ============
+- name: Generate CA private key
+  command: openssl genrsa -out /etc/miarecweb/tls/ca.key 4096
+  args:
+    creates: /etc/miarecweb/tls/ca.key
+
+- name: Set CA key permissions
+  file:
+    path: /etc/miarecweb/tls/ca.key
+    mode: "0600"
+
+- name: Generate CA certificate
+  command: >
+    openssl req -x509 -new -nodes
+    -key /etc/miarecweb/tls/ca.key
+    -sha256 -days 365
+    -out /etc/miarecweb/tls/ca.crt
+    -subj "/CN=Test-CA"
+  args:
+    creates: /etc/miarecweb/tls/ca.crt
+
+- name: Set CA certificate permissions
+  file:
+    path: /etc/miarecweb/tls/ca.crt
+    mode: "0644"
+
+# ============ Generate Client Certificate ============
+- name: Generate client private key
+  command: openssl genrsa -out /etc/miarecweb/tls/client.key 2048
+  args:
+    creates: /etc/miarecweb/tls/client.key
+
+- name: Create client certificate config
+  copy:
+    content: |
+      [req]
+      distinguished_name = req_distinguished_name
+      req_extensions = v3_req
+      prompt = no
+
+      [req_distinguished_name]
+      CN = miarec
+
+      [v3_req]
+      keyUsage = digitalSignature
+      extendedKeyUsage = clientAuth
+    dest: /etc/miarecweb/tls/client.cnf
+    mode: "0644"
+
+- name: Generate client CSR
+  command: >
+    openssl req -new
+    -key /etc/miarecweb/tls/client.key
+    -out /etc/miarecweb/tls/client.csr
+    -config /etc/miarecweb/tls/client.cnf
+  args:
+    creates: /etc/miarecweb/tls/client.csr
+
+- name: Sign client certificate with CA
+  command: >
+    openssl x509 -req
+    -in /etc/miarecweb/tls/client.csr
+    -CA /etc/miarecweb/tls/ca.crt
+    -CAkey /etc/miarecweb/tls/ca.key
+    -CAcreateserial
+    -out /etc/miarecweb/tls/client.crt
+    -days 365 -sha256
+    -extensions v3_req
+    -extfile /etc/miarecweb/tls/client.cnf
+  args:
+    creates: /etc/miarecweb/tls/client.crt
+
+- name: Set client key permissions
+  file:
+    path: /etc/miarecweb/tls/client.key
+    owner: root
+    group: miarec
+    mode: "0640"
+
+- name: Set client certificate permissions
+  file:
+    path: /etc/miarecweb/tls/client.crt
+    owner: root
+    group: miarec
+    mode: "0644"

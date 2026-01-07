@@ -1,0 +1,40 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  pre_tasks:
+
+    - set_fact:
+        miarecweb_version: "{{ lookup('env', 'MIARECWEB_VERSION') }}"
+        miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
+
+    - name: Update apt cache | Debian
+      apt:
+        update_cache: true
+        cache_valid_time: 600
+      changed_when: false
+      when: ansible_facts['os_family'] == "Debian"
+
+  roles:
+    - role: ansible-role-miarecweb
+      vars:
+        # MiaRec group configuration (required for TLS certificate access)
+        miarec_bin_group: miarec
+        miarecweb_celery_user: celery
+        # PostgreSQL TLS configuration
+        miarecweb_db_tls: true
+        miarecweb_db_tls_sslmode: verify-ca
+        miarecweb_db_tls_ca_file: /etc/miarecweb/tls/ca.crt
+        miarecweb_db_tls_cert_file: /etc/miarecweb/tls/client.crt
+        miarecweb_db_tls_key_file: /etc/miarecweb/tls/client.key
+        # Redis TLS configuration
+        miarecweb_redis_tls: true
+        miarecweb_redis_tls_ca_file: /etc/miarecweb/tls/ca.crt
+        miarecweb_redis_tls_cert_file: /etc/miarecweb/tls/client.crt
+        miarecweb_redis_tls_key_file: /etc/miarecweb/tls/client.key
+        miarecweb_redis_tls_cert_reqs: required
+        miarecweb_redis_tls_check_hostname: false
+      tags:
+        - miarecweb

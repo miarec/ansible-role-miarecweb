@@ -1,0 +1,29 @@
+---
+- name: Prepare TLS Environment
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Set python_version from environment
+      set_fact:
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
+
+    - name: Create miarec group
+      group:
+        name: miarec
+        state: present
+
+    - name: Include Python installation tasks
+      include_tasks: tasks/python.yml
+
+    - name: Include TLS certificate generation tasks
+      include_tasks: tasks/certificates.yml
+
+    - name: Include PostgreSQL TLS setup tasks
+      include_tasks: tasks/postgresql_tls.yml
+
+    - name: Include Redis TLS setup tasks
+      include_tasks: tasks/redis_tls.yml
+
+    - name: Include Apache installation tasks
+      include_tasks: tasks/apache.yml

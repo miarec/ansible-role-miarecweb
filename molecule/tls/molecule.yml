@@ -2,11 +2,11 @@
 dependency:
   name: galaxy
   options:
-    requirements-file: collections.yml
+    requirements-file: ../default/collections.yml
 driver:
   name: docker
 platforms:
-  - name: miarecweb-${MOLECULE_DISTRO:-ubuntu2404}
+  - name: miarecweb-tls-${MOLECULE_DISTRO:-ubuntu2404}
     image: ghcr.io/miarec/${MOLECULE_DISTRO:-ubuntu2404}-systemd:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
@@ -31,3 +31,13 @@ verifier:
   options:
     s: true
     verbose: true
+
+scenario:
+  name: tls
+  test_sequence:
+    - destroy
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
