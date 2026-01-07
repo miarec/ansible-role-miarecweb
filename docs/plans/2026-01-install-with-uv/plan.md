@@ -184,7 +184,7 @@ No changes needed. Ansible task output naturally shows UV commands and their res
 
 ## 2. Phase Breakdown
 
-### Phase 1. Replace pip with UV in miarecweb.yml (pending)
+### Phase 1. Replace pip with UV in miarecweb.yml (completed)
 
 **Goal:** Migrate venv creation and miarecweb package installation from pip to UV.
 
@@ -197,7 +197,7 @@ No changes needed. Ansible task output naturally shows UV commands and their res
 
 **Plan:** [plan_phase_1.md](plan_phase_1.md)
 
-### Phase 2. Replace pip with UV in apache.yml (pending)
+### Phase 2. Replace pip with UV in apache.yml (completed)
 
 **Goal:** Migrate mod_wsgi installation from Ansible pip module to UV.
 
@@ -247,8 +247,36 @@ No changes needed. Ansible task output naturally shows UV commands and their res
 
 ### 3.3 Surprises & Discoveries
 
-(To be filled during implementation)
+- **Molecule test default Python version issue**: The molecule test defaults to `PYTHON_VERSION=3.12` which fails on Ubuntu 22.04 (only has Python 3.10). The CI workflow correctly sets `python_version: "3"` for Ubuntu distros to use system Python. This is a pre-existing configuration issue unrelated to UV migration.
 
 ### 3.4 Outcomes & Retrospective
 
-(To be filled after completion)
+**Date:** 2026-01-07
+
+**What was achieved:**
+- Successfully migrated miarecweb installation from pip to UV
+- Replaced 4 pip-related tasks (venv creation, pip upgrade, requirements.txt, package install) with 2 UV tasks
+- Replaced Ansible `pip` module with UV shell command for mod_wsgi installation
+- All tests pass on ubuntu2404, rockylinux8, rockylinux9
+- Both old (setuptools) and new (UV-based) miarecweb packages work correctly
+- Idempotence maintained - no changes on second run
+- ansible-lint passes
+
+**Test Results:**
+
+| Scenario | Distro | Old Version | New Version |
+|----------|--------|-------------|-------------|
+| default | ubuntu2404 | PASS | PASS |
+| default | rockylinux8 | PASS | PASS |
+| default | rockylinux9 | PASS | PASS |
+| tls | ubuntu2404 | PASS | PASS |
+| tls | rockylinux9 | PASS | PASS |
+
+**What remains:**
+- PR review and merge
+- CI will run additional distros (ubuntu2204, rhel8, rhel9)
+
+**Lessons learned:**
+- UV's `--python VERSION` flag works with just the version number (e.g., "3.12"), not requiring a full path
+- UV automatically handles both `setup.py` and `pyproject.toml` packages with `uv pip install -e .`
+- No special handling needed for psycopg2 - UV resolves dependencies correctly without PATH manipulation
