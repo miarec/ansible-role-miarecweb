@@ -50,7 +50,7 @@ MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 ```
 
 ### Available Molecule Environment Variables
-- `MOLECULE_DISTRO`: OS container (ubuntu2204, ubuntu2404, rockylinux9, rhel9)
+- `MOLECULE_DISTRO`: OS container (ubuntu2204, ubuntu2404, rockylinux8, rockylinux9, rhel8, rhel9)
 - `MOLECULE_MIARECWEB_VERSION`: Version to install (default: 2024.1.0.0)
 - `MOLECULE_MIARECWEB_SECRET`: Secret key (default: secret)
 - `MOLECULE_PYTHON_VERSION`: Python version to install/use (default: 3.12)
@@ -64,6 +64,9 @@ MOLECULE_DISTRO=ubuntu2404 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-ubuntu240
 MOLECULE_DISTRO=rockylinux9 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-rockylinux9" uv run molecule test -s default &
 wait
 ```
+
+### Ansible Version
+Ansible is pinned to 9.x (ansible-core 2.16) in `pyproject.toml` to support EL8 distros which ship with Python 3.6. All distros use the same test command.
 
 ## Role Architecture
 
