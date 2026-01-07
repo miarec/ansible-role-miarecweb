@@ -13,6 +13,6 @@
         uv_verify_checksum: true
 
   roles:
-    - role: ansible-role-miarecweb
+    - role: "{{ playbook_dir }}/../.." # noqa: role-name[path]
       tags:
         - miarecweb
