@@ -1,4 +1,10 @@
 ---
+- name: uv | Gather facts if not already gathered
+  ansible.builtin.setup:
+    gather_subset: hardware
+  when: "'architecture' not in ansible_facts"
+  tags: uv
+
 - name: uv | Validate uv_version format
   ansible.builtin.assert:
     that:
