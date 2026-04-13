@@ -10,7 +10,7 @@
 
 - name: Check for miarecweb_version variable.
   fail:
-    msg: Parameter 'miarecweb_version' must be provided. Specify the version to install (e.g., '2024.1.0.0').
+    msg: Parameter 'miarecweb_version' must be provided. Specify the version to install (e.g., '2026.1.11.210+g63303e2').
   when: not miarecweb_version
 
 - name: Check for miarecweb_secret variable.

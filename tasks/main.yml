@@ -104,7 +104,6 @@
   when: miarecweb_install_celerybeat|bool
   become: true
 
-
 # --------------------------------------------------
 # Cleanup old and unfinished releases
 # --------------------------------------------------
@@ -121,4 +120,25 @@
     - start apache
     - start celeryd
     - start celerybeat
+  become: true
+
+# --------------------------------------------------
+# Re-normalize sources after services were restarted
+# --------------------------------------------------
+- name: Flush handlers before normalizing sources
+  meta: flush_handlers
+
+- name: Check MiaRecWeb source directory
+  stat:
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app/miarecweb"
+  register: _miarecweb_source_dir
+  become: true
+
+- name: Normalize permissions on MiaRecWeb sources
+  file:
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app/miarecweb"
+    state: directory
+    recurse: true
+    mode: u=rwX,g=rX,o=rX
+  when: _miarecweb_source_dir.stat.exists
   become: true
