@@ -7,7 +7,7 @@ uv run molecule test
 
 Run test with variable example
 ```
-MOLECULE_DISTRO=rockylinux9 MOLECULE_MIARECWEB_VERSION=2024.1.0.0 uv run molecule test
+MOLECULE_DISTRO=rockylinux9 MOLECULE_MIARECWEB_VERSION=2026.1.11.210+g63303e2 uv run molecule test
 ```
 
 ## Variables
@@ -17,6 +17,6 @@ MOLECULE_DISTRO=rockylinux9 MOLECULE_MIARECWEB_VERSION=2024.1.0.0 uv run molecul
     - `ubuntu2404`
     - `rockylinux9`
     - `rhel9`
- - `MOLECULE_MIARECWEB_VERSION` defines variable `miarecweb_version`, default `2024.1.0.0`
+ - `MOLECULE_MIARECWEB_VERSION` defines variable `miarecweb_version`, default `2026.1.11.210+g63303e2`
  - `MOLECULE_MIARECWEB_SECRET` defines variable `miarecweb_secret`, default `secret`
  - `MOLECULE_ANSIBLE_VERBOSITY` set verbosity for ansible run, like running "ansible -vvv", values 0-3, default 0
