@@ -130,13 +130,13 @@
 
 - name: Check MiaRecWeb source directory
   stat:
-    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app/miarecweb"
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
   register: _miarecweb_source_dir
   become: true
 
 - name: Normalize permissions on MiaRecWeb sources
   file:
-    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app/miarecweb"
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
     state: directory
     recurse: true
     mode: u=rwX,g=rX,o=rX
