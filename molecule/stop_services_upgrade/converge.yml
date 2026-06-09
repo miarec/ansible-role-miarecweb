@@ -1,0 +1,23 @@
+---
+# Upgrade: deploy the NEW MiaRecWeb version on top of the existing install.
+# A previous release now exists and an alembic upgrade is required, so the
+# stop_*_on_alembic_upgrade tasks stop apache/celeryd/celerybeat before the
+# database layout upgrade. The handlers start them again afterwards.
+- name: Converge (stop services on upgrade)
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Set variables from environment
+      set_fact:
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
+        miarecweb_version: "{{ lookup('env', 'MIARECWEB_VERSION') }}"
+        miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
+        stop_apache_on_alembic_upgrade: true
+        stop_celeryd_on_alembic_upgrade: true
+        stop_celerybeat_on_alembic_upgrade: true
+
+  roles:
+    - role: "{{ playbook_dir }}/../.." # noqa: role-name[path]
+      tags:
+        - miarecweb

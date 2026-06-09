@@ -11,6 +11,9 @@ Role Variables
 - `miarecweb_install_apache`: Option to configure apache (default: yes). When using decoupled architecture, set this option to 'yes' for web hosts, and to 'no' for celery worker hosts.
 - `miarecweb_install_celeryd`: Option to install celery worker (default: yes). When using decoupled architecture, set this option to 'no' for web hosts, and to 'yes' for celery worker hosts.
 - `miarecweb_install_celerybeat`: Option to install celery beat schedulear (default: yes). There should be only one celery beat instance in a cluster. When using multi-server architecture, you need to enable celery beat only on a single host.
+- `stop_apache_on_alembic_upgrade`: Stop the apache service before the database layout upgrade, but only if an alembic upgrade is actually required (default: no).
+- `stop_celeryd_on_alembic_upgrade`: Stop the celery worker service before the database layout upgrade, but only if an alembic upgrade is actually required (default: no).
+- `stop_celerybeat_on_alembic_upgrade`: Stop the celery beat service before the database layout upgrade, but only if an alembic upgrade is actually required (default: no).
 - `miarecweb_db_host`: The PostgreSQL host (default: 127.0.0.1)
 - `miarecweb_db_port`: The PostgreSQL port (default: 5432)
 - `miarecweb_db_name`: The PostgreSQL database name (default: miarecdb)

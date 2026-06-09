@@ -28,6 +28,47 @@
   when: '_alembic_current_revision is defined'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
+# Optionally stop services before applying the database layout upgrade.
+# Runs only when an alembic upgrade is actually required.
+# Each service is stopped only on the hosts that manage it (the same
+# miarecweb_install_* condition used by the service handlers).
+# celeryd/celerybeat are created later in this role, so on the initial install
+# they do not exist yet; service_facts is used to stop them only when the unit
+# is actually present. apache is an external prerequisite, so it is always
+# present on hosts where miarecweb_install_apache is enabled.
+- name: Stop services before database layout upgrade
+  when: alembic_current_revision is defined and " (head)" not in alembic_current_revision
+  block:
+    - name: Gather service facts before database layout upgrade
+      service_facts:
+      when: (stop_celeryd_on_alembic_upgrade | bool) or (stop_celerybeat_on_alembic_upgrade | bool)
+
+    - name: Stop apache before database layout upgrade
+      service:
+        name: "{{ apache_service }}"
+        state: stopped
+      when:
+        - stop_apache_on_alembic_upgrade | bool
+        - miarecweb_install_apache | bool
+
+    - name: Stop celeryd before database layout upgrade
+      service:
+        name: celeryd
+        state: stopped
+      when:
+        - stop_celeryd_on_alembic_upgrade | bool
+        - miarecweb_install_celeryd | bool
+        - "'celeryd.service' in ansible_facts.services"
+
+    - name: Stop celerybeat before database layout upgrade
+      service:
+        name: celerybeat
+        state: stopped
+      when:
+        - stop_celerybeat_on_alembic_upgrade | bool
+        - miarecweb_install_celerybeat | bool
+        - "'celerybeat.service' in ansible_facts.services"
+
 - name: Upgrade database layout   # noqa: no-changed-when
   command: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/alembic -c {{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini upgrade heads"
   environment:

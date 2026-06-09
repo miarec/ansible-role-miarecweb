@@ -1,0 +1,29 @@
+---
+# Initial installation: install prerequisites, then deploy the OLD MiaRecWeb
+# version. During this first role run the celeryd/celerybeat services do not
+# exist yet (they are created later in the role), so the
+# stop_*_on_alembic_upgrade tasks must be skipped gracefully even though an
+# alembic upgrade is required on the fresh database.
+- name: Prepare (stop services on upgrade)
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Set variables from environment
+      set_fact:
+        python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
+        miarecweb_version: "{{ lookup('env', 'MIARECWEB_OLD_VERSION') }}"
+        miarecweb_secret: "{{ lookup('env', 'MIARECWEB_SECRET') }}"
+        stop_apache_on_alembic_upgrade: true
+        stop_celeryd_on_alembic_upgrade: true
+        stop_celerybeat_on_alembic_upgrade: true
+
+    - include_tasks: "{{ playbook_dir }}/../default/tasks/python.yml"
+    - include_tasks: "{{ playbook_dir }}/../default/tasks/postgresql.yml"
+    - include_tasks: "{{ playbook_dir }}/../default/tasks/redis.yml"
+    - include_tasks: "{{ playbook_dir }}/../default/tasks/apache.yml"
+
+  roles:
+    - role: "{{ playbook_dir }}/../.." # noqa: role-name[path]
+      tags:
+        - miarecweb

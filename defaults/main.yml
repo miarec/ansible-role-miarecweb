@@ -109,6 +109,13 @@ miarecweb_install_apache: true
 miarecweb_install_celeryd: true
 miarecweb_install_celerybeat: true
 
+# When set to true, the corresponding service is stopped before the
+# "Upgrade database layout" task, but only if an alembic upgrade is
+# actually required (database layout is not up-to-date).
+stop_apache_on_alembic_upgrade: false
+stop_celeryd_on_alembic_upgrade: false
+stop_celerybeat_on_alembic_upgrade: false
+
 miarecweb_force_https: true
 
 
