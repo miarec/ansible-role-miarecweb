@@ -17,7 +17,7 @@ uv run ansible-lint
 uv run molecule test
 
 # Test with specific distro and version
-MOLECULE_DISTRO=ubuntu2204 MOLECULE_MIARECWEB_VERSION=2024.1.0.0 uv run molecule test
+MOLECULE_DISTRO=ubuntu2204 MOLECULE_MIARECWEB_VERSION=2026.1.11.210+g63303e2 uv run molecule test
 
 # Test with verbosity
 MOLECULE_ANSIBLE_VERBOSITY=3 uv run molecule test
@@ -51,7 +51,7 @@ MOLECULE_DISTRO=ubuntu2404 uv run molecule login
 
 ### Available Molecule Environment Variables
 - `MOLECULE_DISTRO`: OS container (ubuntu2204, ubuntu2404, rockylinux8, rockylinux9, rhel8, rhel9)
-- `MOLECULE_MIARECWEB_VERSION`: Version to install (default: 2024.1.0.0)
+- `MOLECULE_MIARECWEB_VERSION`: Version to install (default: 2026.1.11.210+g63303e2)
 - `MOLECULE_MIARECWEB_SECRET`: Secret key (default: secret)
 - `MOLECULE_PYTHON_VERSION`: Python version to install/use (default: 3.12)
 - `MOLECULE_ANSIBLE_VERBOSITY`: 0-3 (default: 0)

@@ -61,7 +61,6 @@
         creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
       when: not miarecweb_app_dir_exists.stat.exists
 
-
 # --------------------------------------------------
 # Python virtual environment
 # --------------------------------------------------
@@ -83,6 +82,19 @@
       --python {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/python
     chdir: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/app"
     creates: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/lib/python{{ python_version_base }}/site-packages/miarecweb-{{ miarecweb_version }}.dist-info"
+
+- name: Check MiaRecWeb pyenv bin directory
+  stat:
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin"
+  register: _miarecweb_pyenv_bin
+
+- name: Normalize permissions on MiaRecWeb pyenv binaries
+  file:
+    path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin"
+    state: directory
+    recurse: true
+    mode: u=rwx,g=rx,o=rx
+  when: _miarecweb_pyenv_bin.stat.exists
 
 
 # --------------------------------------------------
