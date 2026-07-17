@@ -94,6 +94,12 @@ mod_wsgi_user: "{{ apache_user }}"
 mod_wsgi_group: "{{ apache_group }}"
 mod_wsgi_maximum_requests: 10000
 
+# Maximum HTTP request body size in bytes (Apache LimitRequestBody).
+# Protects against memory exhaustion from oversized request bodies.
+# Must stay large enough for call-import uploads and replication
+# payloads (JSON and binary recording files). Default: 100 MB.
+miarecweb_limit_request_body: 104857600
+
 
 # A secret key used for encrypting secrets in the database.
 # If the secret changes or is unknown, no encrypted fields in the database will be accessible.
