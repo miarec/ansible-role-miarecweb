@@ -34,6 +34,20 @@ def test_files(host):
         assert f.exists
         assert f.is_file
 
+def test_celery_worker_proc_alive_timeout(host):
+    # Celery's default of 4 seconds kills new child processes of the worker before they start.
+    # Ask the running worker for its configuration, which shows the value it actually uses.
+    result = host.run(
+        "/opt/miarecweb/current/pyenv/bin/celery -A miarecweb.celery_app inspect conf --json --timeout 10"
+        " --ini-file=/opt/miarecweb/current/production.ini"
+    )
+    assert result.rc == 0, f"celery inspect conf failed: {result.stdout}{result.stderr}"
+
+    nodes = json.loads(result.stdout.strip().splitlines()[-1])
+    assert nodes, "No celery worker replied"
+    for node, conf in nodes.items():
+        assert conf.get("worker_proc_alive_timeout") == 60.0, f"{node}: {conf.get('worker_proc_alive_timeout')}"
+
 def test_service(host):
     if host.system_info.distribution == "ubuntu":
         services = [

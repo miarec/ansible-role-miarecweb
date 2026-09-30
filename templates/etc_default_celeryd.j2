@@ -13,7 +13,8 @@ CELERY_APP="miarecweb.celery_app"
 CELERYD_CHDIR="{{ miarecweb_root_dir }}/pyenv"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="--time-limit=300 -Ofair --concurrency=8 --ini-file={{ miarecweb_root_dir }}/production.ini"
+# Celery settings after "--" override the same settings in the INI file. Keep "--" last.
+CELERYD_OPTS="--time-limit=300 -Ofair --concurrency=8 --ini-file={{ miarecweb_root_dir }}/production.ini -- worker_proc_alive_timeout={{ miarecweb_celery_worker_proc_alive_timeout }}"
 
 # %N will be replaced with the first part of the nodename.
 CELERYD_LOG_FILE="{{ miarecweb_celery_log_dir }}/%N.log"

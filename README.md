@@ -14,6 +14,7 @@ Role Variables
 - `stop_apache_on_alembic_upgrade`: Stop the apache service before the database layout upgrade, but only if an alembic upgrade is actually required (default: no).
 - `stop_celeryd_on_alembic_upgrade`: Stop the celery worker service before the database layout upgrade, but only if an alembic upgrade is actually required (default: no).
 - `stop_celerybeat_on_alembic_upgrade`: Stop the celery beat service before the database layout upgrade, but only if an alembic upgrade is actually required (default: no).
+- `miarecweb_celery_worker_proc_alive_timeout`: The number of seconds the celery worker waits for a new child process to start before it kills the child (default: 60). Celery's own default, 4 seconds, is too short for MiaRecWeb: the worker stops processing tasks after it recycles its child processes. This value overrides `celery.worker_proc_alive_timeout` in the INI file.
 - `miarecweb_db_host`: The PostgreSQL host (default: 127.0.0.1)
 - `miarecweb_db_port`: The PostgreSQL port (default: 5432)
 - `miarecweb_db_name`: The PostgreSQL database name (default: miarecdb)

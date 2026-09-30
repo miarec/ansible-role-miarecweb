@@ -191,6 +191,10 @@ miarecweb_celery_umask: "0022"
 miarecweb_celery_pid_dir: /var/run/celery
 miarecweb_celery_log_level: INFO
 miarecweb_celery_log_dir: '{{ miarecweb_log_dir }}/celery'
+# Seconds the worker waits for a new child process to start before it kills the child.
+# Celery's default of 4 seconds is too short for MiaRecWeb, and the worker stops processing
+# tasks once it recycles its child processes (worker_max_tasks_per_child).
+miarecweb_celery_worker_proc_alive_timeout: 60
 
 
 # Download files location
