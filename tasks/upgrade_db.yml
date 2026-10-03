@@ -86,8 +86,13 @@
   when: 'alembic_current_revision is defined and " (head)" not in alembic_current_revision'
   run_once: "{{ miarecweb_upgrade_db_once|default(True) }}"   # execute this task once during a playbook execution, even though the role is applied to many hosts
 
+# Run ANALYZE through the psycopg2 driver in the virtual environment. The psql
+# client is absent on web hosts that have no local PostgreSQL server, such as
+# RHEL hosts in a decoupled deployment. libpq reads the PG* variables below.
 - name: Update database statistics (ANALYZE)   # noqa: no-changed-when
-  command: 'psql -c "ANALYZE"'
+  command: >-
+    {{ ansible_facts['deploy_helper']['new_release_path'] }}/pyenv/bin/python -c
+    "import psycopg2; conn = psycopg2.connect(''); conn.autocommit = True; conn.cursor().execute('ANALYZE')"
   environment:
     PGUSER: "{{ miarecweb_db_user }}"
     PGPASSWORD: "{{ miarecweb_db_password }}"
