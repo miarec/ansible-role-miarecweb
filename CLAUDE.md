@@ -65,6 +65,8 @@ MOLECULE_DISTRO=rockylinux9 MOLECULE_EPHEMERAL_DIRECTORY="/tmp/molecule-rockylin
 wait
 ```
 
+Each scenario's `molecule.yml` sets `prerun: false`. By default, Molecule's prerun step symlinks the role into `~/.ansible/roles`, and parallel runs fail with `FileExistsError` when they create the symlink at the same time. Set `prerun: false` in any new scenario as well.
+
 ### Ansible Version
 Ansible is pinned to 9.x (ansible-core 2.16) in `pyproject.toml` to support EL8 distros which ship with Python 3.6. All distros use the same test command.
 
