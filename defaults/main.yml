@@ -60,6 +60,12 @@ miarecweb_db_tls_sslmode: verify-ca
 miarecweb_db_tls_ca_file: ""       # CA certificate to validate server
 miarecweb_db_tls_cert_file: ""     # Client certificate for mTLS
 miarecweb_db_tls_key_file: ""      # Client private key for mTLS
+# Local copies of the files above. When a *_src variable is set, the role uploads
+# the file to the matching miarecweb_db_tls_*_file path and reloads the services
+# when the file changed. Leave it empty when the file is already on the host.
+miarecweb_db_tls_ca_file_src: ""
+miarecweb_db_tls_cert_file_src: ""
+miarecweb_db_tls_key_file_src: ""
 
 # -----------------------------
 # Redis settings
@@ -80,6 +86,10 @@ miarecweb_redis_tls: false
 miarecweb_redis_tls_ca_file: ""           # CA certificate to validate server
 miarecweb_redis_tls_cert_file: ""         # Client certificate for mTLS
 miarecweb_redis_tls_key_file: ""          # Client private key for mTLS
+# Local copies of the files above, see miarecweb_db_tls_*_src.
+miarecweb_redis_tls_ca_file_src: ""
+miarecweb_redis_tls_cert_file_src: ""
+miarecweb_redis_tls_key_file_src: ""
 miarecweb_redis_tls_cert_reqs: required   # required, optional, or none
 miarecweb_redis_tls_check_hostname: false # Verify server hostname
 

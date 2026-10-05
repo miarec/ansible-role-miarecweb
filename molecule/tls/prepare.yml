@@ -3,15 +3,13 @@
   hosts: all
   become: true
 
+  vars:
+    tls_src_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/tls"
+
   tasks:
     - name: Set python_version from environment
       set_fact:
         python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
-
-    - name: Create miarec group
-      group:
-        name: miarec
-        state: present
 
     - name: Include Python installation tasks
       include_tasks: tasks/python.yml
@@ -27,3 +25,18 @@
 
     - name: Include Apache installation tasks
       include_tasks: tasks/apache.yml
+
+    # The role uploads these files from the control machine, like the
+    # production playbooks do. Move them off the host, so the test proves it.
+    - name: Fetch the TLS files that the role uploads
+      fetch:
+        src: "/etc/miarecweb/tls/{{ item }}"
+        dest: "{{ tls_src_dir }}/"
+        flat: true
+      loop: [ca.crt, client.crt, client.key]
+
+    - name: Remove the fetched TLS files from the host
+      file:
+        path: "/etc/miarecweb/tls/{{ item }}"
+        state: absent
+      loop: [ca.crt, client.crt, client.key]
