@@ -168,8 +168,6 @@
       line: 'REDIS_SOCKET_KEEPALIVE = {{ miarecweb_redis_socket_keepalive }}'
     - regexp: '^REDIS_HEALTH_CHECK_INTERVAL = '
       line: 'REDIS_HEALTH_CHECK_INTERVAL = {{ miarecweb_redis_health_check_interval }}'
-    - regexp: '^REDIS_POOL_RECYCLE = '
-      line: 'REDIS_POOL_RECYCLE = {{ miarecweb_redis_pool_recycle }}'
     - regexp: '^miarec.jobs_log_directory = '
       line: 'miarec.jobs_log_directory = {{ miarecweb_log_dir }}/jobs'
     - regexp: '^deform_mako.module_directory = '
