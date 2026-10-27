@@ -152,8 +152,6 @@
       line: 'DATABASE_USER = {{ miarecweb_db_user }}'
     - regexp: '^DATABASE_POOL_SIZE = '
       line: 'DATABASE_POOL_SIZE = {{ miarecweb_db_pool_size }}'
-    - regexp: '^DATABASE_POOL_RECYCLE = '
-      line: 'DATABASE_POOL_RECYCLE = {{ miarecweb_db_pool_recycle }}'
     - regexp: '^DATABASE_POOL_USE_LIFO = '
       line: 'DATABASE_POOL_USE_LIFO = {{ miarecweb_db_pool_use_lifo }}'
     - regexp: '^REDIS_HOST = '
