@@ -42,7 +42,6 @@ miarecweb_db_user: miarec
 miarecweb_db_password: password
 
 miarecweb_db_pool_size: 5
-miarecweb_db_pool_recycle: 3600
 miarecweb_db_pool_use_lifo: true
 
 # -----------------------------
