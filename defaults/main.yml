@@ -71,7 +71,6 @@ miarecweb_redis_socket_timeout: 60
 miarecweb_redis_socket_connect_timeout: 60
 miarecweb_redis_socket_keepalive: true
 miarecweb_redis_health_check_interval: 300
-miarecweb_redis_pool_recycle: 3600
 
 # -----------------------------
 # Redis TLS settings
