@@ -9,17 +9,17 @@ miarecweb_version = os.environ.get('MIARECWEB_VERSION')
 
 
 def test_tls_certificates_exist(host):
-    """Verify TLS certificates were generated."""
+    """Verify TLS certificates were uploaded."""
     cert_files = [
-        # CA and client certs in /etc/miarecweb/tls/
+        # CA and client certs in /etc/miarecweb/tls/, uploaded by the role
         "/etc/miarecweb/tls/ca.crt",
         "/etc/miarecweb/tls/client.crt",
         "/etc/miarecweb/tls/client.key",
-        # PostgreSQL server certs in /etc/postgresql/tls/
+        # PostgreSQL server certs in /etc/postgresql/tls/, uploaded by prepare
         "/etc/postgresql/tls/server.crt",
         "/etc/postgresql/tls/server.key",
         "/etc/postgresql/tls/ca.crt",
-        # Redis server certs in /etc/redis/tls/
+        # Redis server certs in /etc/redis/tls/, uploaded by prepare
         "/etc/redis/tls/server.crt",
         "/etc/redis/tls/server.key",
         "/etc/redis/tls/ca.crt",
@@ -28,6 +28,11 @@ def test_tls_certificates_exist(host):
         f = host.file(cert_file)
         assert f.exists, f"Certificate file not found: {cert_file}"
         assert f.is_file, f"Not a file: {cert_file}"
+
+
+def test_ca_key_not_on_host(host):
+    """The CA private key stays on the control machine."""
+    assert not host.file("/etc/miarecweb/tls/ca.key").exists
 
 
 def test_production_ini_db_ssl_params(host):
