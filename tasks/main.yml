@@ -27,6 +27,7 @@
     name: "{{ miarec_bin_group }}"
     state: present
   when: miarec_bin_group != 'root'
+  become: true
 
 # --------------------------------------------------
 # Upload TLS files (optional)
