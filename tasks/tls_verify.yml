@@ -1,0 +1,33 @@
+---
+# Verify that the service users can read the TLS files. A file that Apache or
+# Celery cannot open fails the play here, with the previous release still
+# active, instead of failing the service at its next restart, which may go
+# unnoticed for a long time.
+#
+# The check runs as the identities the application actually uses: the mod_wsgi
+# daemon user, which runs the web application inside Apache, and the Celery
+# user, which runs both celeryd and celerybeat. runuser applies the user's
+# supplementary groups, as mod_wsgi and systemd do, so the check also proves
+# that the user is a member of miarec_bin_group. `test -r` covers traversal of
+# every directory and read permission on the file itself, for files the role
+# uploaded and files that arrived by other means.
+
+- name: Verify the service users can read the TLS files
+  vars:
+    _miarecweb_tls_users: >-
+      {{
+        ([mod_wsgi_user] if miarecweb_install_apache | bool else [])
+        + ([miarecweb_celery_user] if (miarecweb_install_celeryd | bool or miarecweb_install_celerybeat | bool) else [])
+      }}
+    _miarecweb_tls_paths: >-
+      {{
+        (
+          ([miarecweb_db_tls_ca_file, miarecweb_db_tls_cert_file, miarecweb_db_tls_key_file] if miarecweb_db_tls | bool else [])
+          + ([miarecweb_redis_tls_ca_file, miarecweb_redis_tls_cert_file, miarecweb_redis_tls_key_file] if miarecweb_redis_tls | bool else [])
+        ) | select | unique | list
+      }}
+  command: runuser -u {{ item.0 }} -- test -r {{ item.1 }}
+  loop: "{{ _miarecweb_tls_users | product(_miarecweb_tls_paths) | list }}"
+  loop_control:
+    label: "{{ item.0 }} can read {{ item.1 }}"
+  changed_when: false

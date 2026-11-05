@@ -114,6 +114,16 @@
   become: true
 
 # --------------------------------------------------
+# Verify the service users can read the TLS files
+# Runs after the Apache and Celery users exist and before the
+# release is finalized, so a failure leaves the previous
+# release active and the services untouched.
+# --------------------------------------------------
+- import_tasks: tls_verify.yml
+  when: miarecweb_db_tls | bool or miarecweb_redis_tls | bool
+  become: true
+
+# --------------------------------------------------
 # Cleanup old and unfinished releases
 # --------------------------------------------------
 - name: Cleanup old releases
