@@ -3,8 +3,8 @@
 #
 # Control machine (first play):
 #   Generates a test CA, a client certificate, and a server certificate for
-#   each of PostgreSQL and Redis in `tls_src_dir`. The CA private keys stay
-#   here.
+#   each of PostgreSQL and Redis in `tls_src_dir`, defined once in
+#   molecule.yml. The CA private keys stay here.
 #
 # Target (second play):
 #   Installs PostgreSQL and Redis. Each service's task file uploads its own
@@ -22,9 +22,6 @@
   gather_facts: false
   become: false
 
-  vars:
-    tls_src_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/tls"
-
   tasks:
     - name: Include TLS certificate generation tasks
       include_tasks: tasks/certificates.yml
@@ -32,9 +29,6 @@
 - name: Prepare TLS Environment
   hosts: all
   become: true
-
-  vars:
-    tls_src_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/tls"
 
   tasks:
     - name: Set python_version from environment
