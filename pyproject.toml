@@ -2,7 +2,10 @@
 name = "ansible-role-miarecweb"
 version = "0.1.0"
 description = "Ansible role to install and configure MiaRec Web application"
-requires-python = ">=3.10"
+# The upper bound follows ansible-core 2.16, which supports Python 3.10 to 3.12
+# on the control machine. Without it, uv picks the newest interpreter on the
+# CI runner, and ansible-compat refuses to start.
+requires-python = ">=3.10,<3.13"
 
 [dependency-groups]
 # Pin ansible to 9.x (ansible-core 2.16) because:
