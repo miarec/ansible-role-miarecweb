@@ -6,11 +6,13 @@
 # All files are owned by root. Certificates are world readable (0644). Private
 # keys are readable by root and miarec_bin_group only (0640).
 #
+# The role sets permissions only on the files it uploads. A file that is
+# already on the host, because its *_src variable is empty, is left as is.
 # A missing parent directory is created as 0755 root:root, regardless of the
 # umask, so every service can traverse it. An existing directory is never
 # changed, because it may be shared with other services, such as
 # /etc/ssl/certs or /etc/ssl/private. tls_verify.yml checks later that the
-# service users can read the files.
+# service users can read every file, uploaded or not.
 #
 # The PostgreSQL and Redis clients often share one CA file. When both point at
 # the same source and destination, the file is uploaded once.

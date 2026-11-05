@@ -45,9 +45,10 @@ def test_tls_file_permissions(host):
         cert = host.file(f"/etc/miarecweb/tls/{name}")
         assert cert.user == "root", f"{name} is not owned by root"
         assert cert.mode == 0o644, f"{name} is not 0644"
+    # The role created the directory, so it has the fixed mode, not the umask.
     tls_dir = host.file("/etc/miarecweb/tls")
-    assert tls_dir.group == "miarec"
-    assert tls_dir.mode == 0o750
+    assert tls_dir.user == "root"
+    assert tls_dir.mode == 0o755
 
 
 def test_production_ini_db_ssl_params(host):
