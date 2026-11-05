@@ -1,0 +1,47 @@
+---
+# Verify that the service users can read the TLS files. A file that Apache or
+# Celery cannot open fails the play here, with the previous release still
+# active, instead of failing the service at its next restart, which may go
+# unnoticed for a long time.
+#
+# The check runs as the identities the application actually uses: the mod_wsgi
+# daemon user, which runs the web application inside Apache, and the Celery
+# user, which runs both celeryd and celerybeat. runuser applies the user's
+# supplementary groups, as mod_wsgi and systemd do, so the check also proves
+# that the user is a member of miarec_bin_group. `test -r` covers traversal of
+# every directory and read permission on the file itself, for files the role
+# uploaded and files that arrived by other means.
+
+- name: Start with empty lists of TLS users and files
+  set_fact:
+    _miarecweb_tls_users: []
+    _miarecweb_tls_paths: []
+
+- name: Add the mod_wsgi user, which runs the web application inside Apache
+  set_fact:
+    _miarecweb_tls_users: "{{ _miarecweb_tls_users + [mod_wsgi_user] }}"
+  when: miarecweb_install_apache | bool
+
+- name: Add the Celery user, which runs celeryd and celerybeat
+  set_fact:
+    _miarecweb_tls_users: "{{ _miarecweb_tls_users + [miarecweb_celery_user] }}"
+  when: miarecweb_install_celeryd | bool or miarecweb_install_celerybeat | bool
+
+- name: Add the PostgreSQL TLS files
+  set_fact:
+    _miarecweb_tls_paths: "{{ _miarecweb_tls_paths + [miarecweb_db_tls_ca_file, miarecweb_db_tls_cert_file, miarecweb_db_tls_key_file] }}"
+  when: miarecweb_db_tls | bool
+
+- name: Add the Redis TLS files
+  set_fact:
+    _miarecweb_tls_paths: "{{ _miarecweb_tls_paths + [miarecweb_redis_tls_ca_file, miarecweb_redis_tls_cert_file, miarecweb_redis_tls_key_file] }}"
+  when: miarecweb_redis_tls | bool
+
+# `select` drops an empty path, for a deployment without a client certificate.
+# `unique` handles a CA file shared by both services.
+- name: Verify the service users can read the TLS files
+  command: runuser -u {{ item.0 | quote }} -- test -r {{ item.1 | quote }}
+  loop: "{{ _miarecweb_tls_users | product(_miarecweb_tls_paths | select | unique) | list }}"
+  loop_control:
+    label: "{{ item.0 }} can read {{ item.1 }}"
+  changed_when: false

@@ -27,40 +27,17 @@
     name: "{{ miarec_bin_group }}"
     state: present
   when: miarec_bin_group != 'root'
-
-# --------------------------------------------------
-# Configure TLS certificate permissions
-# When TLS is enabled with client certificates, ensure the
-# certificate files are readable by the miarec_bin_group
-# --------------------------------------------------
-- name: Set group ownership on TLS certificate files
-  file:
-    path: "{{ item }}"
-    group: "{{ miarec_bin_group }}"
-    mode: "u=rw,g=r,o="
-  loop: "{{ _tls_key_files | select | list }}"
-  vars:
-    _tls_key_files:
-      - "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file | length > 0) else '' }}"
-      - "{{ miarecweb_redis_tls_key_file if (miarecweb_redis_tls | bool and miarecweb_redis_tls_key_file | length > 0) else '' }}"
-  when:
-    - miarec_bin_group != 'root'
-    - _tls_key_files | select | list | length > 0
   become: true
 
-- name: Set group ownership on TLS certificate directory
-  file:
-    path: "{{ item | dirname }}"
-    group: "{{ miarec_bin_group }}"
-    mode: "u=rwx,g=rx,o="
-  loop: "{{ _tls_key_files | select | list }}"
-  vars:
-    _tls_key_files:
-      - "{{ miarecweb_db_tls_key_file if (miarecweb_db_tls | bool and miarecweb_db_tls_key_file | length > 0) else '' }}"
-      - "{{ miarecweb_redis_tls_key_file if (miarecweb_redis_tls | bool and miarecweb_redis_tls_key_file | length > 0) else '' }}"
-  when:
-    - miarec_bin_group != 'root'
-    - _tls_key_files | select | list | length > 0
+# --------------------------------------------------
+# Upload TLS files (optional)
+# A file is uploaded when its *_src variable is set. The private keys get
+# the group created above. The role sets permissions only on the files it
+# uploads; a file that is already on the host is left as is, and
+# tls_verify.yml below fails the play when a service user cannot read it.
+# --------------------------------------------------
+- import_tasks: tls_upload.yml
+  when: miarecweb_db_tls | bool or miarecweb_redis_tls | bool
   become: true
 
 # --------------------------------------------------
@@ -102,6 +79,16 @@
 
 - import_tasks: celerybeat.yml
   when: miarecweb_install_celerybeat|bool
+  become: true
+
+# --------------------------------------------------
+# Verify the service users can read the TLS files
+# Runs after the Apache and Celery users exist and before the
+# release is finalized, so a failure leaves the previous
+# release active and the services untouched.
+# --------------------------------------------------
+- import_tasks: tls_verify.yml
+  when: miarecweb_db_tls | bool or miarecweb_redis_tls | bool
   become: true
 
 # --------------------------------------------------

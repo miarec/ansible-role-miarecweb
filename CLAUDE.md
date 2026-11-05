@@ -76,12 +76,14 @@ Ansible is pinned to 9.x (ansible-core 2.16) in `pyproject.toml` to support EL8 
 1. `preflight.yml` - Pre-run validation
 2. `dependencies.yml` - Install OS dependencies
 3. Python version verification
-4. `miarecweb.yml` - Install/upgrade web app files using deploy_helper
-5. `upgrade_db.yml` - Database schema migrations (when `miarecweb_upgrade_db: true`)
-6. `apache.yml` - Apache/mod_wsgi configuration (when `miarecweb_install_apache: true`)
-7. `celeryd.yml` - Celery worker setup (when `miarecweb_install_celeryd: true`)
-8. `celerybeat.yml` - Celery beat scheduler (when `miarecweb_install_celerybeat: true`)
-9. Release finalization with deploy_helper (keeps 10 releases)
+4. `tls_upload.yml` - Upload TLS files from the control machine (when a `*_src` variable is set)
+5. `miarecweb.yml` - Install/upgrade web app files using deploy_helper
+6. `upgrade_db.yml` - Database schema migrations (when `miarecweb_upgrade_db: true`)
+7. `apache.yml` - Apache/mod_wsgi configuration (when `miarecweb_install_apache: true`)
+8. `celeryd.yml` - Celery worker setup (when `miarecweb_install_celeryd: true`)
+9. `celerybeat.yml` - Celery beat scheduler (when `miarecweb_install_celerybeat: true`)
+10. `tls_verify.yml` - Fail if the Apache or Celery user cannot read a TLS file (when TLS is enabled)
+11. Release finalization with deploy_helper (keeps 10 releases)
 
 ### Installation Directory Structure
 ```

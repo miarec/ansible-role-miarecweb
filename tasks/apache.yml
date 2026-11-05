@@ -94,13 +94,15 @@
   when: ansible_facts['os_family'] == "Debian"
 
 
-# Apache needs:
+# The web application runs in the mod_wsgi daemon as mod_wsgi_user, not as
+# the Apache user. That user needs:
+#  - read permissions to the TLS private keys (root:miarec_bin_group 0640)
 #  - read permissions to miarecweb python files (/opt/miarecweb/current/)
 #  - write permissions to the directory used for incoming replication
 # We assume that such directory is owned by "miarec" group
-- name: Grant apache process an access to recordings directory
+- name: Grant the mod_wsgi process an access to recordings directory and TLS keys
   user:
-    name: "{{ apache_user }}"
+    name: "{{ mod_wsgi_user }}"
     groups: "{{ miarec_bin_group }}"
     append: true
   when: miarec_bin_group != 'root'

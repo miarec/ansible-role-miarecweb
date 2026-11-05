@@ -1,4 +1,31 @@
 ---
+# The TLS fixtures are split between the control machine and the target.
+#
+# Control machine (first play):
+#   Generates a test CA, a client certificate, and a server certificate for
+#   each of PostgreSQL and Redis in `tls_src_dir`, defined once in
+#   molecule.yml. The CA private keys stay here.
+#
+# Target (second play):
+#   Installs PostgreSQL and Redis. Each service's task file uploads its own
+#   server certificate and the CA certificate into the service's directory,
+#   /etc/postgresql/tls or /etc/redis/tls.
+#
+# Nothing in prepare writes to /etc/miarecweb/tls. The role creates that
+# directory and uploads the client certificate and the CA certificate from
+# `tls_src_dir` during converge, the same way the production playbooks do.
+# A passing test therefore proves the role's upload, not the fixture's.
+
+- name: Generate TLS certificates on the control machine
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Include TLS certificate generation tasks
+      include_tasks: tasks/certificates.yml
+
 - name: Prepare TLS Environment
   hosts: all
   become: true
@@ -8,16 +35,8 @@
       set_fact:
         python_version: "{{ lookup('env', 'PYTHON_VERSION') }}"
 
-    - name: Create miarec group
-      group:
-        name: miarec
-        state: present
-
     - name: Include Python installation tasks
       include_tasks: tasks/python.yml
-
-    - name: Include TLS certificate generation tasks
-      include_tasks: tasks/certificates.yml
 
     - name: Include PostgreSQL TLS setup tasks
       include_tasks: tasks/postgresql_tls.yml
