@@ -26,26 +26,26 @@
         # MiaRec group configuration (required for TLS certificate access)
         miarec_bin_group: miarec
         miarecweb_celery_user: celery
+        # PostgreSQL and Redis each have their own PKI and their own directory.
+        # The role uploads the files from the control machine (see prepare.yml).
         # PostgreSQL TLS configuration
         miarecweb_db_tls: true
         miarecweb_db_tls_sslmode: verify-ca
-        miarecweb_db_tls_ca_file: /etc/miarecweb/tls/ca.crt
-        miarecweb_db_tls_cert_file: /etc/miarecweb/tls/client.crt
-        miarecweb_db_tls_key_file: /etc/miarecweb/tls/client.key
+        miarecweb_db_tls_ca_file: /etc/miarecweb/tls/postgresql/ca.crt
+        miarecweb_db_tls_cert_file: /etc/miarecweb/tls/postgresql/client.crt
+        miarecweb_db_tls_key_file: /etc/miarecweb/tls/postgresql/client.key
+        miarecweb_db_tls_ca_file_src: "{{ tls_src_dir }}/postgresql/ca.crt"
+        miarecweb_db_tls_cert_file_src: "{{ tls_src_dir }}/postgresql/client.crt"
+        miarecweb_db_tls_key_file_src: "{{ tls_src_dir }}/postgresql/client.key"
         # Redis TLS configuration
         miarecweb_redis_tls: true
-        miarecweb_redis_tls_ca_file: /etc/miarecweb/tls/ca.crt
-        miarecweb_redis_tls_cert_file: /etc/miarecweb/tls/client.crt
-        miarecweb_redis_tls_key_file: /etc/miarecweb/tls/client.key
+        miarecweb_redis_tls_ca_file: /etc/miarecweb/tls/redis/ca.crt
+        miarecweb_redis_tls_cert_file: /etc/miarecweb/tls/redis/client.crt
+        miarecweb_redis_tls_key_file: /etc/miarecweb/tls/redis/client.key
+        miarecweb_redis_tls_ca_file_src: "{{ tls_src_dir }}/redis/ca.crt"
+        miarecweb_redis_tls_cert_file_src: "{{ tls_src_dir }}/redis/client.crt"
+        miarecweb_redis_tls_key_file_src: "{{ tls_src_dir }}/redis/client.key"
         miarecweb_redis_tls_cert_reqs: required
         miarecweb_redis_tls_check_hostname: false
-        # The role uploads the files from the control machine (see prepare.yml).
-        # PostgreSQL and Redis share the files, which the role uploads once.
-        miarecweb_db_tls_ca_file_src: "{{ tls_src_dir }}/ca.crt"
-        miarecweb_db_tls_cert_file_src: "{{ tls_src_dir }}/client.crt"
-        miarecweb_db_tls_key_file_src: "{{ tls_src_dir }}/client.key"
-        miarecweb_redis_tls_ca_file_src: "{{ tls_src_dir }}/ca.crt"
-        miarecweb_redis_tls_cert_file_src: "{{ tls_src_dir }}/client.crt"
-        miarecweb_redis_tls_key_file_src: "{{ tls_src_dir }}/client.key"
       tags:
         - miarecweb

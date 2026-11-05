@@ -2,8 +2,9 @@
 # The TLS fixtures are split between the control machine and the target.
 #
 # Control machine (first play):
-#   Generates the test CA, the client certificate, and the PostgreSQL and
-#   Redis server certificates in `tls_src_dir`. The CA private key stays here.
+#   Generates a test CA, a client certificate, and a server certificate for
+#   each of PostgreSQL and Redis in `tls_src_dir`. The CA private keys stay
+#   here.
 #
 # Target (second play):
 #   Installs PostgreSQL and Redis. Each service's task file uploads its own

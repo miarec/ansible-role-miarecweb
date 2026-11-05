@@ -42,7 +42,7 @@
   loop:
     - { src: redis/server.key, mode: "0600" }
     - { src: redis/server.crt, mode: "0644" }
-    - { src: ca.crt, mode: "0644" }
+    - { src: redis/ca.crt, mode: "0644" }
 
 # Start Redis temporarily to detect config file location
 - name: Redis | Start Redis service temporarily

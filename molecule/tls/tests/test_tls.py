@@ -7,14 +7,17 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 miarecweb_version = os.environ.get('MIARECWEB_VERSION')
 
+# PostgreSQL and Redis each have their own PKI. The role uploads the client
+# files into a directory per service.
+SERVICES = ("postgresql", "redis")
+
 
 def test_tls_certificates_exist(host):
     """Verify TLS certificates were uploaded."""
     cert_files = [
-        # CA and client certs in /etc/miarecweb/tls/, uploaded by the role
-        "/etc/miarecweb/tls/ca.crt",
-        "/etc/miarecweb/tls/client.crt",
-        "/etc/miarecweb/tls/client.key",
+        # CA and client certs per service, uploaded by the role
+        *(f"/etc/miarecweb/tls/{svc}/{name}"
+          for svc in SERVICES for name in ("ca.crt", "client.crt", "client.key")),
         # PostgreSQL server certs in /etc/postgresql/tls/, uploaded by prepare
         "/etc/postgresql/tls/server.crt",
         "/etc/postgresql/tls/server.key",
@@ -31,24 +34,26 @@ def test_tls_certificates_exist(host):
 
 
 def test_ca_key_not_on_host(host):
-    """The CA private key stays on the control machine."""
-    assert not host.file("/etc/miarecweb/tls/ca.key").exists
+    """The CA private keys stay on the control machine."""
+    for svc in SERVICES:
+        assert not host.file(f"/etc/miarecweb/tls/{svc}/ca.key").exists
 
 
 def test_tls_file_permissions(host):
-    """The role uploads the private key readable by the service group only."""
-    key = host.file("/etc/miarecweb/tls/client.key")
-    assert key.user == "root"
-    assert key.group == "miarec"
-    assert key.mode == 0o640
-    for name in ("ca.crt", "client.crt"):
-        cert = host.file(f"/etc/miarecweb/tls/{name}")
-        assert cert.user == "root", f"{name} is not owned by root"
-        assert cert.mode == 0o644, f"{name} is not 0644"
-    # The role created the directory, so it has the fixed mode, not the umask.
-    tls_dir = host.file("/etc/miarecweb/tls")
-    assert tls_dir.user == "root"
-    assert tls_dir.mode == 0o755
+    """The role uploads the private keys readable by the service group only."""
+    for svc in SERVICES:
+        key = host.file(f"/etc/miarecweb/tls/{svc}/client.key")
+        assert key.user == "root", f"{svc} key is not owned by root"
+        assert key.group == "miarec", f"{svc} key is not group miarec"
+        assert key.mode == 0o640, f"{svc} key is not 0640"
+        for name in ("ca.crt", "client.crt"):
+            cert = host.file(f"/etc/miarecweb/tls/{svc}/{name}")
+            assert cert.user == "root", f"{svc}/{name} is not owned by root"
+            assert cert.mode == 0o644, f"{svc}/{name} is not 0644"
+        # The role created the directory, so it has the fixed mode, not the umask.
+        tls_dir = host.file(f"/etc/miarecweb/tls/{svc}")
+        assert tls_dir.user == "root", f"{svc} directory is not owned by root"
+        assert tls_dir.mode == 0o755, f"{svc} directory is not 0755"
 
 
 def test_production_ini_db_ssl_params(host):
@@ -61,9 +66,9 @@ def test_production_ini_db_ssl_params(host):
     content = ini_file.content_string
     assert "DATABASE_SSL_PARAMS" in content, "DATABASE_SSL_PARAMS not found in production.ini"
     assert "sslmode=verify-ca" in content, "sslmode not configured correctly"
-    assert "sslrootcert=/etc/miarecweb/tls/ca.crt" in content, "sslrootcert not configured"
-    assert "sslcert=/etc/miarecweb/tls/client.crt" in content, "sslcert not configured"
-    assert "sslkey=/etc/miarecweb/tls/client.key" in content, "sslkey not configured"
+    assert "sslrootcert=/etc/miarecweb/tls/postgresql/ca.crt" in content, "sslrootcert not configured"
+    assert "sslcert=/etc/miarecweb/tls/postgresql/client.crt" in content, "sslcert not configured"
+    assert "sslkey=/etc/miarecweb/tls/postgresql/client.key" in content, "sslkey not configured"
 
 
 def test_production_ini_redis_ssl_params(host):
@@ -77,9 +82,9 @@ def test_production_ini_redis_ssl_params(host):
     assert "REDIS_SCHEMA" in content, "REDIS_SCHEMA not found in production.ini"
     assert "rediss" in content, "Redis TLS schema (rediss) not configured"
     assert "REDIS_SSL_PARAMS" in content, "REDIS_SSL_PARAMS not found in production.ini"
-    assert "ssl_ca_certs=/etc/miarecweb/tls/ca.crt" in content, "ssl_ca_certs not configured"
-    assert "ssl_certfile=/etc/miarecweb/tls/client.crt" in content, "ssl_certfile not configured"
-    assert "ssl_keyfile=/etc/miarecweb/tls/client.key" in content, "ssl_keyfile not configured"
+    assert "ssl_ca_certs=/etc/miarecweb/tls/redis/ca.crt" in content, "ssl_ca_certs not configured"
+    assert "ssl_certfile=/etc/miarecweb/tls/redis/client.crt" in content, "ssl_certfile not configured"
+    assert "ssl_keyfile=/etc/miarecweb/tls/redis/client.key" in content, "ssl_keyfile not configured"
 
 
 def test_postgresql_ssl_enabled(host):
@@ -145,10 +150,11 @@ def test_celery_runs_as_celery_user(host):
     assert not root_workers, "A celery process runs as root"
 
 
-def test_celery_user_can_read_tls_key(host):
-    """The celery user reads the private key through miarec_bin_group."""
-    result = host.run("runuser -u celery -- cat /etc/miarecweb/tls/client.key")
-    assert result.rc == 0, f"celery cannot read client.key: {result.stderr}"
+def test_celery_user_can_read_tls_keys(host):
+    """The celery user reads the private keys through miarec_bin_group."""
+    for svc in SERVICES:
+        result = host.run(f"runuser -u celery -- cat /etc/miarecweb/tls/{svc}/client.key")
+        assert result.rc == 0, f"celery cannot read {svc} client.key: {result.stderr}"
 
 
 def test_celery_worker_reachable_over_redis_tls(host):
@@ -205,9 +211,9 @@ def test_alembic_with_tls(host):
     # as environment variables to alembic commands
     result = host.run(
         "PGSSLMODE=verify-ca "
-        "PGSSLCERT=/etc/miarecweb/tls/client.crt "
-        "PGSSLKEY=/etc/miarecweb/tls/client.key "
-        "PGSSLROOTCERT=/etc/miarecweb/tls/ca.crt "
+        "PGSSLCERT=/etc/miarecweb/tls/postgresql/client.crt "
+        "PGSSLKEY=/etc/miarecweb/tls/postgresql/client.key "
+        "PGSSLROOTCERT=/etc/miarecweb/tls/postgresql/ca.crt "
         "/opt/miarecweb/current/pyenv/bin/alembic -c /opt/miarecweb/current/production.ini current"
     )
     assert result.rc == 0, f"Alembic failed to connect with TLS: {result.stderr}"
