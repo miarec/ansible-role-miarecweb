@@ -20,14 +20,15 @@ The Apache site config and the Celery environment files are now rendered with LF
 
 * **Who is affected**: deployments that set the new `*_src` variables, starting with ansible-miarec. Every deployment sees the three template tasks report `changed` once on the next run, which reloads Apache and restarts Celery; later runs are idempotent again.
 * **Who is not affected**: existing deployments, beyond that one-time restart. The `*_src` defaults are empty, so no new task runs.
+* **Keys the role doesn't upload**: the role no longer changes the group or mode of a private key that is already on the host (set with `*_file` but no `*_src`). A key that the Apache or Celery user can't read fails the play with the user and file named. The TLS feature has not been deployed to production, so no deployment relied on the removed tasks.
 * **Conditions**: `miarecweb_db_tls` or `miarecweb_redis_tls` enabled and at least one `*_src` variable set.
 
 ---
 
 ## 🔧 Implementation notes
 
-* The upload runs after the group is created and before the existing permission tasks, which set the group and mode on the private key directories and still cover files that arrive by other means. The upload creates a missing directory with default permissions and leaves an existing one alone, so a certificate in a shared directory such as `/etc/ssl/certs` doesn't change that directory's permissions.
-* The PostgreSQL and Redis clients usually share one CA file. When both point at the same source and destination, the file is uploaded once.
+* The role sets permissions only on the files it uploads, never on directories or on files that are already on the host. A missing parent directory is created as `0755 root:root`, regardless of the host's umask, and an existing one is left alone, so a file in a shared directory such as `/etc/ssl/certs` or `/etc/ssl/private` doesn't change that directory's permissions. The two pre-existing tasks that set the group and mode on the key file and its directory are removed for the same reason.
+* Before the release is finalized, the role checks that the Apache and Celery users can read every TLS file in use, uploaded or not. A key they cannot open fails the play with the previous release still active, instead of failing the service at its next restart.
 * The preflight check that required a non-root `miarecweb_celery_user` for client certificates now also requires a non-root `miarec_bin_group`, because the role writes the uploaded key as `root:{{ miarec_bin_group }}` with mode 0640. Its message already asked for both.
 * The preflight check skips a file that has a `*_src` variable, because the copy task reports a missing source. Files without one are still checked on the host.
 * The TLS Molecule scenario generates the certificates on the control machine. The PostgreSQL and Redis fixtures upload their own server certificates, and nothing in prepare writes to `/etc/miarecweb/tls`, so a passing test proves that the role creates the directory and uploads the client files. The CA private key never reaches the target, and verify asserts that.
