@@ -26,8 +26,9 @@ The Apache site config and the Celery environment files are now rendered with LF
 
 ## 🔧 Implementation notes
 
-* The upload runs after the group is created and before the existing permission tasks, which still cover files that arrive by other means.
-* The PostgreSQL and Redis clients usually share one CA file. The file list is deduplicated by destination, so a shared file is uploaded once.
+* The upload runs after the group is created and before the existing permission tasks, which set the group and mode on the private key directories and still cover files that arrive by other means. The upload creates a missing directory with default permissions and leaves an existing one alone, so a certificate in a shared directory such as `/etc/ssl/certs` doesn't change that directory's permissions.
+* The PostgreSQL and Redis clients usually share one CA file. When both point at the same source and destination, the file is uploaded once.
+* The preflight check that required a non-root `miarecweb_celery_user` for client certificates now also requires a non-root `miarec_bin_group`, because the role writes the uploaded key as `root:{{ miarec_bin_group }}` with mode 0640. Its message already asked for both.
 * The preflight check skips a file that has a `*_src` variable, because the copy task reports a missing source. Files without one are still checked on the host.
 * The TLS Molecule scenario generates the certificates on the control machine. The PostgreSQL and Redis fixtures upload their own server certificates, and nothing in prepare writes to `/etc/miarecweb/tls`, so a passing test proves that the role creates the directory and uploads the client files. The CA private key never reaches the target, and verify asserts that.
 * `.gitattributes` normalizes line endings to LF, so a Windows checkout can't reintroduce CRLF. `.yamllint` mirrors the rules that `.ansible-lint` skips and allows spaces inside braces.
