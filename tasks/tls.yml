@@ -4,11 +4,13 @@
 # when the file is already on the host, for example when another tool manages it.
 #
 # All files are owned by root. Certificates are world readable (0644). Private
-# keys are readable by root and miarec_bin_group only (0640). A missing parent
-# directory is created with the default permissions; an existing one is left
-# alone, because a certificate may live in a shared directory such as
-# /etc/ssl/certs. The permission tasks in main.yml set the group and mode on
-# the directories of the private keys.
+# keys are readable by root and miarec_bin_group only (0640).
+#
+# A missing parent directory is created as 0755 root:root, regardless of the
+# umask, so every service can traverse it. An existing directory is never
+# changed, because it may be shared with other services, such as
+# /etc/ssl/certs or /etc/ssl/private. tls_verify.yml checks later that the
+# service users can read the files.
 #
 # The PostgreSQL and Redis clients often share one CA file. When both point at
 # the same source and destination, the file is uploaded once.
@@ -31,13 +33,19 @@
         ) | selectattr('src') | unique | list
       }}
   block:
-    # No mode on purpose: a new directory gets the default permissions and an
-    # existing one keeps its own.
-    - name: Create missing TLS directories # noqa: risky-file-permissions
+    - name: Check which TLS directories exist
+      stat:
+        path: "{{ item }}"
+      loop: "{{ _miarecweb_tls_files | map(attribute='dest') | map('dirname') | unique | list }}"
+      register: _miarecweb_tls_dirs
+
+    - name: Create missing TLS directories
       file:
         path: "{{ item }}"
         state: directory
-      loop: "{{ _miarecweb_tls_files | map(attribute='dest') | map('dirname') | unique | list }}"
+        owner: root
+        mode: "0755"
+      loop: "{{ _miarecweb_tls_dirs.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
 
     - name: Upload TLS certificates and private keys
       copy:
