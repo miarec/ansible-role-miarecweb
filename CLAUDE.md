@@ -76,7 +76,7 @@ Ansible is pinned to 9.x (ansible-core 2.16) in `pyproject.toml` to support EL8 
 1. `preflight.yml` - Pre-run validation
 2. `dependencies.yml` - Install OS dependencies
 3. Python version verification
-4. `tls.yml` - Upload TLS files from the control machine (when a `*_src` variable is set)
+4. `tls_upload.yml` - Upload TLS files from the control machine (when a `*_src` variable is set)
 5. `miarecweb.yml` - Install/upgrade web app files using deploy_helper
 6. `upgrade_db.yml` - Database schema migrations (when `miarecweb_upgrade_db: true`)
 7. `apache.yml` - Apache/mod_wsgi configuration (when `miarecweb_install_apache: true`)

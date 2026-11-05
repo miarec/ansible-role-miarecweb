@@ -36,7 +36,7 @@
 # uploads; a file that is already on the host is left as is, and
 # tls_verify.yml below fails the play when a service user cannot read it.
 # --------------------------------------------------
-- import_tasks: tls.yml
+- import_tasks: tls_upload.yml
   when: miarecweb_db_tls | bool or miarecweb_redis_tls | bool
   become: true
 
