@@ -35,6 +35,21 @@ def test_ca_key_not_on_host(host):
     assert not host.file("/etc/miarecweb/tls/ca.key").exists
 
 
+def test_tls_file_permissions(host):
+    """The role uploads the private key readable by the service group only."""
+    key = host.file("/etc/miarecweb/tls/client.key")
+    assert key.user == "root"
+    assert key.group == "miarec"
+    assert key.mode == 0o640
+    for name in ("ca.crt", "client.crt"):
+        cert = host.file(f"/etc/miarecweb/tls/{name}")
+        assert cert.user == "root", f"{name} is not owned by root"
+        assert cert.mode == 0o644, f"{name} is not 0644"
+    tls_dir = host.file("/etc/miarecweb/tls")
+    assert tls_dir.group == "miarec"
+    assert tls_dir.mode == 0o750
+
+
 def test_production_ini_db_ssl_params(host):
     """Verify DATABASE_SSL_PARAMS is configured in production.ini."""
     ini_file = host.file(
@@ -118,6 +133,32 @@ def test_services(host):
         s = host.service(service)
         assert s.is_enabled, f"Service {service} is not enabled"
         assert s.is_running, f"Service {service} is not running"
+
+
+def test_celery_runs_as_celery_user(host):
+    """The worker runs as the non-root celery user, a member of miarec_bin_group."""
+    assert "miarec" in host.user("celery").groups
+    workers = [p for p in host.process.filter(user="celery") if "celery" in p.comm]
+    assert workers, "No celery process runs as user celery"
+    root_workers = [p for p in host.process.filter(user="root") if "celery" in p.comm]
+    assert not root_workers, "A celery process runs as root"
+
+
+def test_celery_user_can_read_tls_key(host):
+    """The celery user reads the private key through miarec_bin_group."""
+    result = host.run("runuser -u celery -- cat /etc/miarecweb/tls/client.key")
+    assert result.rc == 0, f"celery cannot read client.key: {result.stderr}"
+
+
+def test_celery_worker_reachable_over_redis_tls(host):
+    """A ping from the celery user reaches the worker through Redis over TLS."""
+    result = host.run(
+        "runuser -u celery -- /opt/miarecweb/current/pyenv/bin/celery "
+        "-A miarecweb.celery_app inspect ping "
+        "--ini-file=/opt/miarecweb/current/production.ini --timeout 30"
+    )
+    assert result.rc == 0, f"celery inspect ping failed: {result.stderr}"
+    assert "pong" in result.stdout, f"Worker did not answer the ping: {result.stdout}"
 
 
 def test_health_endpoint(host):
