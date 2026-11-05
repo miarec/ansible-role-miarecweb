@@ -143,16 +143,16 @@
 # and apache need to read the private key files. Running as root
 # is not supported - a dedicated user/group must be configured.
 # ---------------------------------------------
-- name: Check TLS configuration requires non-root celery user
+- name: Check TLS configuration requires non-root celery user and group
   fail:
     msg: >-
-      TLS with client certificates requires a non-root celery user.
+      TLS with client certificates requires a non-root celery user and group.
       Set 'miarecweb_celery_user' to a dedicated user (e.g., 'celery')
       and 'miarec_bin_group' to a shared group that can read the certificate files.
   when:
     - (miarecweb_db_tls | bool and miarecweb_db_tls_key_file | length > 0) or
       (miarecweb_redis_tls | bool and miarecweb_redis_tls_key_file | length > 0)
-    - miarecweb_celery_user == 'root'
+    - miarecweb_celery_user == 'root' or miarec_bin_group == 'root'
 
 # ---------------------------------------------
 # Detect/verify python installation on this server

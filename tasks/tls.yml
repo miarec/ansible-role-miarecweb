@@ -4,9 +4,14 @@
 # when the file is already on the host, for example when another tool manages it.
 #
 # All files are owned by root. Certificates are world readable (0644). Private
-# keys are readable by root and miarec_bin_group only (0640). The PostgreSQL
-# and Redis client often share one CA file. The list is deduplicated by
-# destination, so the shared file is uploaded once.
+# keys are readable by root and miarec_bin_group only (0640). A missing parent
+# directory is created with the default permissions; an existing one is left
+# alone, because a certificate may live in a shared directory such as
+# /etc/ssl/certs. The permission tasks in main.yml set the group and mode on
+# the directories of the private keys.
+#
+# The PostgreSQL and Redis clients often share one CA file. When both point at
+# the same source and destination, the file is uploaded once.
 
 - name: Upload TLS files
   vars:
@@ -26,13 +31,12 @@
         ) | selectattr('src') | unique | list
       }}
   block:
-    - name: Create TLS directories
+    # No mode on purpose: a new directory gets the default permissions and an
+    # existing one keeps its own.
+    - name: Create missing TLS directories # noqa: risky-file-permissions
       file:
         path: "{{ item }}"
         state: directory
-        owner: root
-        group: "{{ miarec_bin_group }}"
-        mode: "0750"
       loop: "{{ _miarecweb_tls_files | map(attribute='dest') | map('dirname') | unique | list }}"
 
     - name: Upload TLS certificates and private keys
