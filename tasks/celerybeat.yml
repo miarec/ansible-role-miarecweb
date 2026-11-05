@@ -21,6 +21,17 @@
     system: true
   when: miarecweb_celery_user != 'root'
 
+# Celerybeat reads the TLS private keys (root:miarec_bin_group 0640) and needs
+# write permissions to the recordings directory, which is owned by the
+# "miarec" group. Same task as in celeryd.yml, for a host that runs only
+# the scheduler.
+- name: Grant celerybeat process an access to recordings directory and TLS keys
+  user:
+    name: "{{ miarecweb_celery_user }}"
+    groups: "{{ miarec_bin_group }}"
+    append: true
+  when: miarecweb_celery_user != 'root' and miarecweb_celery_group != miarec_bin_group
+
 
 - name: Create log directory for celerybeat
   file:
