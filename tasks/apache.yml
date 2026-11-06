@@ -19,12 +19,14 @@
 
 # --------------------------------------------------
 # releases/x.x.x.x/cache folder
+# Mako writes compiled templates here at runtime, so the owner is the user
+# of the mod_wsgi daemon, which runs the web application.
 # --------------------------------------------------
 - name: Create cache directory for templates
   file:
     path: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/cache"
-    owner: '{{ apache_user }}'
-    group: '{{ apache_group }}'
+    owner: '{{ mod_wsgi_user }}'
+    group: '{{ mod_wsgi_group }}'
     state: directory
     mode: u=rwX,g=rX,o=rX
 
