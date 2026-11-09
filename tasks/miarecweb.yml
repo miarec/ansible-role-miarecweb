@@ -244,6 +244,17 @@
     - reload celeryd
     - reload celerybeat
 
+# The sample file lists the hosts on indented continuation lines. Replace the
+# option together with those lines, so no default host stays in the list.
+# Releases without the probe have no such option, and the task changes nothing.
+- name: Configure the hosts allowed to call the Celery health probe
+  replace:
+    dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"
+    regexp: '^observability\.celery_probe\.hosts[ \t]*=.*(?:\n[ \t]+\S.*)*$'
+    replace: "observability.celery_probe.hosts = {{ miarecweb_celery_probe_hosts | join(' ') }}"
+  notify:
+    - reload apache
+
 - name: Configure secrets in production.ini file
   lineinfile:
     dest: "{{ ansible_facts['deploy_helper']['new_release_path'] }}/production.ini"

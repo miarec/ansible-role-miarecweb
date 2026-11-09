@@ -92,6 +92,18 @@ miarecweb_redis_tls_cert_reqs: required   # required, optional, or none
 miarecweb_redis_tls_check_hostname: false # Verify server hostname
 
 # -----------------------------
+# Celery health probe
+# -----------------------------
+# Addresses and networks (CIDR) that may call /health/celery/probe. The probe
+# sends a task to a Celery worker and waits for the result, so a monitoring
+# service can check the whole web-to-worker path. Other clients get HTTP 403.
+# An empty list turns the probe off. The default allows the web host itself.
+# MiaRec Web versions without the probe ignore this setting.
+miarecweb_celery_probe_hosts:
+  - 127.0.0.1
+  - ::1
+
+# -----------------------------
 # mod_wsgi settings
 # -----------------------------
 # A version of mod_wsgi module 
